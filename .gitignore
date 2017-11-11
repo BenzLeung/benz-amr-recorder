@@ -1,0 +1,10 @@
+.DS_Store
+.idea/
+.settings
+.project
+
+*.bak
+*.tmp
+Thumbs.db
+
+node_modules/
