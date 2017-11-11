@@ -112,6 +112,7 @@
             xhr.open('GET', url);
             xhr.responseType = 'blob';
             xhr.onload = function() {
+                alert('fetch ok');
                 callback(this.response);
             };
             xhr.onerror = function() {
@@ -127,6 +128,7 @@
                 callback(data);
             };
             reader.readAsArrayBuffer(blob);
+            alert('readBlob ok');
         }
 
         function fetchAndReadBlob(url, callback) {
@@ -159,12 +161,14 @@
         }
 
         function playAmrArray(array) {
+            alert('playAmrArray start');
             var samples = AMR.decode(array);
             if (!samples) {
                 alert('Failed to decode!');
                 return;
             }
             playPcm(samples);
+            alert('playAmrArray end');
         }
 
         function playPcm(samples) {
