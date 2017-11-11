@@ -112,7 +112,6 @@
             xhr.open('GET', url);
             xhr.responseType = 'blob';
             xhr.onload = function() {
-                alert('fetch ok');
                 callback(this.response);
             };
             xhr.onerror = function() {
@@ -128,7 +127,6 @@
                 callback(data);
             };
             reader.readAsArrayBuffer(blob);
-            alert('readBlob ok');
         }
 
         function fetchAndReadBlob(url, callback) {
@@ -161,7 +159,6 @@
         }
 
         function playAmrArray(array) {
-            alert('playAmrArray start');
             try {
                 var samples = AMR.decode(array);
                 if (!samples) {
@@ -178,8 +175,11 @@
 
         function playPcm(samples) {
             var ctx = getAudioContext();
+            alert('ctx ok');
             var src = ctx.createBufferSource();
-            var buffer = ctx.createBuffer(1, samples.length, 8000);
+            alert('createBufferSource ok');
+            var buffer = ctx['createBuffer'](1, samples.length, 8000);
+            alert('createBuffer ok');
             if (buffer.copyToChannel) {
                 buffer.copyToChannel(samples, 0, 0)
             } else {
