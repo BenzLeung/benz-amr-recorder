@@ -183,9 +183,8 @@
         function playPcm(samples) {
             var ctx = getAudioContext();
             var src = ctx.createBufferSource();
-            alert('samples.length = ' + samples.length);
             try {
-                var buffer = ctx['createBuffer'](1, samples.length, 8000);
+                var buffer = ctx['createBuffer'](1, samples.length, 22050);
                 alert('createBuffer ok');
             } catch (e) {
                 alert('catch');
