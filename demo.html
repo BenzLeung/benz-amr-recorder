@@ -14,7 +14,7 @@
     Convert <a href="res/yuan.amr">yuan.amr</a> to wav file and compare with <a href="res/yuan.wav">yuan.wav</a>:
     <button>Test</button>
 </p>
-<h2>Decode amr file and play 2</h2>
+<h2>Decode amr file and play 3</h2>
 <p id="sample-amr">
     <button>Play</button> <a href="res/yuan.amr">yuan.amr</a>
 </p>
@@ -68,6 +68,7 @@
         };
 
         E('#sample-amr > button').onclick = function() {
+            playPcm([]);
             fetchBlob(E('#sample-amr > a').href, function(blob) {
                 playAmrBlob(blob);
             });
