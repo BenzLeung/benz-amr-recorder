@@ -14,9 +14,11 @@
     Convert <a href="res/yuan.amr">yuan.amr</a> to wav file and compare with <a href="res/yuan.wav">yuan.wav</a>:
     <button>Test</button>
 </p>
-<h2>Decode amr file and play 3</h2>
+<h2>Decode amr file and play 6</h2>
 <p id="sample-amr">
-    <button>Play</button> <a href="res/yuan.amr">yuan.amr</a>
+    <button id="sample-amr-load">Load</button>
+    <button id="sample-amr-play">Play</button>
+    <a href="res/yuan.amr">yuan.amr</a>
 </p>
 <p>
     Select a local file and play: <input type="file" id="amr-file" accept=".amr">
@@ -67,11 +69,21 @@
             });
         };
 
-        E('#sample-amr > button').onclick = function() {
-            playPcm([]);
+        var sample;
+        E('#sample-amr-load').onclick = function() {
             fetchBlob(E('#sample-amr > a').href, function(blob) {
-                playAmrBlob(blob);
+                readBlob(blob, function (array) {
+                    sample = AMR.decode(array);
+                    alert('Loaded');
+                })
             });
+        };
+
+        E('#sample-amr-play').onclick = function () {
+            if (!sample) {
+                alert('Please load first');
+            }
+            playPcm(sample);
         };
 
         E('#amr-file').onchange = function() {
@@ -160,26 +172,25 @@
         }
 
         function playAmrArray(array) {
-            try {
-                var samples = AMR.decode(array);
-                if (!samples) {
-                    alert('Failed to decode!');
-                    return;
-                }
-                playPcm(samples);
-                alert('playAmrArray end');
-            } catch (e) {
-                alert('catch');
-                alert(JSON.stringify(e));
+            var samples = AMR.decode(array);
+            if (!samples) {
+                alert('Failed to decode!');
+                return;
             }
+            playPcm(samples);
         }
 
         function playPcm(samples) {
             var ctx = getAudioContext();
             var src = ctx.createBufferSource();
             alert('samples.length = ' + samples.length);
-            var buffer = ctx['createBuffer'](1, samples.length, 8000);
-            alert('createBuffer ok');
+            try {
+                var buffer = ctx['createBuffer'](1, samples.length, 8000);
+                alert('createBuffer ok');
+            } catch (e) {
+                alert('catch');
+                alert(JSON.stringify(e));
+            }
             if (buffer.copyToChannel) {
                 buffer.copyToChannel(samples, 0, 0)
             } else {
