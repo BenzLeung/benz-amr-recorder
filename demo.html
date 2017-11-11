@@ -14,7 +14,7 @@
     Convert <a href="res/yuan.amr">yuan.amr</a> to wav file and compare with <a href="res/yuan.wav">yuan.wav</a>:
     <button>Test</button>
 </p>
-<h2>Decode amr file and play 6</h2>
+<h2>Decode amr file and play 7</h2>
 <p id="sample-amr">
     <button id="sample-amr-load">Load</button>
     <button id="sample-amr-play">Play</button>
@@ -184,7 +184,7 @@
             var ctx = getAudioContext();
             var src = ctx.createBufferSource();
             try {
-                var buffer = ctx['createBuffer'](1, samples.length, 8000);
+                var buffer = ctx['createBuffer'](1, samples.length, 11025);
                 alert('createBuffer ok');
             } catch (e) {
                 alert('catch');
