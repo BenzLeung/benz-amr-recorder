@@ -1,0 +1,22 @@
+{
+  "name": "benz-amr-recorder",
+  "version": "0.0.1",
+  "keywords": [
+    "web audio api",
+    "amr",
+    "Recorder"
+  ],
+  "homepage": "https://github.com/BenzLeung/benz-amr-recorder",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-bump": "^2.7.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
+    "gulp-uglify": "^2.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BenzLeung/benz-amr-recorder.git"
+  },
+  "license": "MIT"
+}
