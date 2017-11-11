@@ -9,11 +9,6 @@
 </head>
 
 <body>
-<h2>Test decoder</h2>
-<p id="test">
-    Convert <a href="res/yuan.amr">yuan.amr</a> to wav file and compare with <a href="res/yuan.wav">yuan.wav</a>:
-    <button>Test</button>
-</p>
 <h2>Decode amr file and play 7</h2>
 <p id="sample-amr">
     <button id="sample-amr-load">Load</button>
@@ -23,22 +18,6 @@
 <p>
     Select a local file and play: <input type="file" id="amr-file" accept=".amr">
 </p>
-<h2>Encode audio to amr file and play</h2>
-<p id="sample-audio">
-    <button>Encode &amp; Play</button> <a href="res/hello.ogg">hello.ogg</a>
-</p>
-<p>
-    Select a local file to encode and play: <input type="file" id="audio-file" accept="audio/*">
-</p>
-<h2>Amr to wav</h2>
-<p id="amr-to-wav">
-    <button>Convert to wav and play</button> <a href="res/yuan.amr">yuan.amr</a>
-</p>
-<p>
-    Select a local file, convert and play: <input type="file" id="amr-to-wav-file" accept=".amr">
-</p>
-<p>wav file content:</p>
-<pre></pre>
 <script src="lib/amrnb.js" defer></script>
 <script>
     (function () {
@@ -183,19 +162,36 @@
         function playPcm(samples) {
             var ctx = getAudioContext();
             var src = ctx.createBufferSource();
+            var buffer;
             try {
-                var buffer;
                 buffer = ctx['createBuffer'](1, samples.length, 22050);
-                alert('createBuffer 22050 ok');
-                buffer = ctx['createBuffer'](1, samples.length, 32000);
-                alert('createBuffer 32000 ok');
-                buffer = ctx['createBuffer'](1, samples.length, 24000);
-                alert('createBuffer 24000 ok');
-                buffer = ctx['createBuffer'](1, samples.length, 16000);
-                alert('createBuffer 16000 ok');
+                alert('Sample Rate 22050 ok');
             } catch (e) {
-                alert('catch');
-                alert(JSON.stringify(e));
+                alert('catch! Sample Rate 22050 error');
+            }
+            try {
+                buffer = ctx['createBuffer'](1, samples.length, 32000);
+                alert('Sample Rate 32000 ok');
+            } catch (e) {
+                alert('catch! Sample Rate 32000 error');
+            }
+            try {
+                buffer = ctx['createBuffer'](1, samples.length, 24000);
+                alert('Sample Rate 24000 ok');
+            } catch (e) {
+                alert('catch! Sample Rate 22050 error');
+            }
+            try {
+                buffer = ctx['createBuffer'](1, samples.length, 16000);
+                alert('Sample Rate 16000 ok');
+            } catch (e) {
+                alert('catch! Sample Rate 16000 error');
+            }
+            try {
+                buffer = ctx['createBuffer'](1, samples.length, 8000);
+                alert('Sample Rate 8000 ok');
+            } catch (e) {
+                alert('catch! Sample Rate 8000 error');
             }
             if (buffer.copyToChannel) {
                 buffer.copyToChannel(samples, 0, 0)
