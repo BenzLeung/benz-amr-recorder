@@ -415,6 +415,11 @@ var BenzAMRPlayer = function () {
     }
 
     createClass(BenzAMRPlayer, [{
+        key: 'isInit',
+        value: function isInit() {
+            return this._isInit;
+        }
+    }, {
         key: 'initWithAMRArray',
         value: function initWithAMRArray(array) {
             var _this = this;

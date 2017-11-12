@@ -21,6 +21,10 @@ export default class BenzAMRPlayer {
 
     _blob = null;
 
+    isInit() {
+        return this._isInit;
+    }
+
     initWithAMRArray(array) {
         this._samples = AMR.decode(array);
         this._isInit = true;

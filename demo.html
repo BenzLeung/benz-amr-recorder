@@ -37,15 +37,15 @@
         };
 
         E('#sample-amr-play').onclick = function () {
+            if (!amr.isInit()) {
+                alert('请先加载');
+                return;
+            }
             amr.play();
         };
 
         E('#sample-amr-stop').onclick = function () {
-            try {
-                BenzAMRPlayer.stop();
-            } catch (e) {
-                alert(JSON.stringify(e));
-            }
+            BenzAMRPlayer.stop();
         };
 
         E('#amr-file').onchange = function() {
