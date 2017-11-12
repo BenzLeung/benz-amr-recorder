@@ -117,16 +117,21 @@
             } catch (e) {
                 alert('catch! Sample Rate 24000 error');
             }
-            if (buffer.copyToChannel) {
-                buffer.copyToChannel(newSamples, 0, 0)
-            } else {
-                var channelBuffer = buffer.getChannelData(0);
-                channelBuffer.set(newSamples);
+            try {
+                if (buffer.copyToChannel) {
+                    buffer.copyToChannel(newSamples, 0, 0)
+                } else {
+                    var channelBuffer = buffer.getChannelData(0);
+                    channelBuffer.set(newSamples);
+                }
+
+                src.buffer = buffer;
+                src.connect(ctx.destination);
+                src.start();
+            } catch (e) {
+                alert(JSON.stringify(e));
             }
 
-            src.buffer = buffer;
-            src.connect(ctx.destination);
-            src.start();
         }
 
     })();
