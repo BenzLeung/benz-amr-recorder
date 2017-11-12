@@ -112,7 +112,7 @@
                     newSamples[i * 3 + 2] = samples[i];
                 }
                 alert('converse to 24000 ok');
-                buffer = ctx['createBuffer'](1, samples.length, 24000);
+                buffer = ctx['createBuffer'](1, newSamples.length, 24000);
                 alert('Sample Rate 24000 ok');
             } catch (e) {
                 alert('catch! Sample Rate 24000 error');
@@ -122,7 +122,7 @@
                     buffer.copyToChannel(newSamples, 0, 0)
                 } else {
                     var channelBuffer = buffer.getChannelData(0);
-                    channelBuffer.set(samples);
+                    channelBuffer.set(newSamples);
                 }
 
                 src.buffer = buffer;
