@@ -70,13 +70,49 @@ export const stopPcm = function () {
 let recorderStream = null;
 let recorder = null;
 
-const initRecorder = function () {
-    if (!recorder) {
-        window.navigator.getUserMedia({audio: true}, function (stream) {
-            recorderStream = ctx['createMediaStreamSource'](stream);
-            recorder = new Recorder(recorderStream);
-        });
+export const initRecorder = function () {
+    return new Promise((resolve, reject) => {
+        if (!recorder) {
+            window.navigator.getUserMedia({audio: true}, (stream) => {
+                recorderStream = ctx['createMediaStreamSource'](stream);
+                recorder = new Recorder(recorderStream);
+                resolve();
+            }, (e) => {
+                reject(e);
+            });
+        } else {
+            resolve();
+        }
+    });
+};
+
+export const isRecording = function () {
+    return recorder.recording;
+};
+
+export const startRecord = function () {
+    if (recorder) {
+        recorder.clear();
+        recorder.record();
     }
 };
 
+export const stopRecord = function () {
+    if (recorder) {
+        recorder.stop();
+    }
+};
 
+export const getRecordSampleRate = function () {
+    return ctx.sampleRate;
+};
+
+export const generateRecordSamples = function () {
+    return new Promise((resolve) => {
+        if (recorder) {
+            recorder.getBuffer((buffers) => {
+                resolve(buffers[0]);
+            });
+        }
+    });
+};

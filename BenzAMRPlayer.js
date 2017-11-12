@@ -392,6 +392,56 @@ var stopPcm = function stopPcm() {
     }
 };
 
+var recorderStream = null;
+var recorder = null;
+
+var initRecorder = function initRecorder() {
+    return new Promise(function (resolve, reject) {
+        if (!recorder) {
+            window.navigator.getUserMedia({ audio: true }, function (stream) {
+                recorderStream = ctx['createMediaStreamSource'](stream);
+                recorder = new Recorder(recorderStream);
+                resolve();
+            }, function (e) {
+                reject(e);
+            });
+        } else {
+            resolve();
+        }
+    });
+};
+
+var isRecording = function isRecording() {
+    return recorder.recording;
+};
+
+var startRecord = function startRecord() {
+    if (recorder) {
+        recorder.clear();
+        recorder.record();
+    }
+};
+
+var stopRecord = function stopRecord() {
+    if (recorder) {
+        recorder.stop();
+    }
+};
+
+var getRecordSampleRate = function getRecordSampleRate() {
+    return ctx.sampleRate;
+};
+
+var generateRecordSamples = function generateRecordSamples() {
+    return new Promise(function (resolve) {
+        if (recorder) {
+            recorder.getBuffer(function (buffers) {
+                resolve(buffers[0]);
+            });
+        }
+    });
+};
+
 /**
  * @file AMR 录音、转换、播放器
  * @author BenzLeung(https://github.com/BenzLeung)
@@ -410,6 +460,7 @@ var BenzAMRPlayer = function () {
     function BenzAMRPlayer() {
         classCallCheck(this, BenzAMRPlayer);
         this._isInit = false;
+        this._isInitRecorder = false;
         this._samples = new Float32Array(0);
         this._blob = null;
     }
@@ -475,12 +526,54 @@ var BenzAMRPlayer = function () {
             });
         }
     }, {
+        key: 'initWithRecord',
+        value: function initWithRecord() {
+            var _this4 = this;
+
+            return new Promise(function (resolve) {
+                initRecorder().then(function () {
+                    _this4._isInitRecorder = true;
+                    resolve();
+                });
+            });
+        }
+    }, {
         key: 'play',
         value: function play() {
             if (!this._isInit) {
                 throw new Error('Please init AMR first.');
             }
-            playPcm(this._samples);
+            playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000);
+        }
+    }, {
+        key: 'startRecord',
+        value: function startRecord$$1() {
+            startRecord();
+        }
+    }, {
+        key: 'finishRecord',
+        value: function finishRecord() {
+            var _this5 = this;
+
+            return new Promise(function (resolve) {
+                stopRecord();
+                generateRecordSamples().then(function (samples) {
+                    _this5._samples = samples;
+                    _this5._blob = BenzAMRPlayer.encodeAMR(samples, getRecordSampleRate());
+                    _this5._isInit = true;
+                    resolve();
+                });
+            });
+        }
+    }, {
+        key: 'isRecording',
+        value: function isRecording$$1() {
+            return isRecording();
+        }
+    }, {
+        key: 'getBlob',
+        value: function getBlob() {
+            return this._blob;
         }
     }], [{
         key: 'stop',
@@ -492,8 +585,7 @@ var BenzAMRPlayer = function () {
         value: function encodeAMR(samples, sampleRate) {
             sampleRate = sampleRate || 8000;
             var rawData = AMR.encode(samples, sampleRate, 7);
-            var dataView = new DataView(rawData);
-            var amrBlob = new Blob([dataView], { type: 'audio/amr' });
+            var amrBlob = new Blob([rawData.buffer], { type: 'audio/amr' });
             return amrBlob;
         }
     }]);

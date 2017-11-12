@@ -8,7 +8,10 @@
  * each engineer has a duty to keep the code elegant
  */
 
-import {playPcm, stopPcm} from "./audioContext";
+import {
+    generateRecordSamples, getRecordSampleRate, initRecorder, isRecording, playPcm, startRecord, stopPcm,
+    stopRecord
+} from "./audioContext";
 /*import AMR from '../lib/amrnb';*/
 
 window.AMR = window.AMR || {};
@@ -16,6 +19,8 @@ window.AMR = window.AMR || {};
 export default class BenzAMRPlayer {
 
     _isInit = false;
+
+    _isInitRecorder = false;
 
     _samples = new Float32Array(0);
 
@@ -71,22 +76,54 @@ export default class BenzAMRPlayer {
         });
     }
 
+    initWithRecord() {
+        return new Promise((resolve) => {
+            initRecorder().then(() => {
+                this._isInitRecorder = true;
+                resolve();
+            });
+        });
+    }
+
     play() {
         if (!this._isInit) {
             throw new Error('Please init AMR first.');
         }
-        playPcm(this._samples);
+        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000);
     }
 
     static stop() {
         stopPcm();
     }
 
+    startRecord() {
+        startRecord();
+    }
+
+    finishRecord() {
+        return new Promise((resolve) => {
+            stopRecord();
+            generateRecordSamples().then((samples) => {
+                this._samples = samples;
+                this._blob = BenzAMRPlayer.encodeAMR(samples, getRecordSampleRate());
+                this._isInit = true;
+                resolve();
+            })
+        });
+    }
+
+    isRecording() {
+        return isRecording();
+    }
+
+    getBlob() {
+        return this._blob;
+    }
+
     static encodeAMR(samples, sampleRate) {
         sampleRate = sampleRate || 8000;
         let rawData = AMR.encode(samples, sampleRate, 7);
-        let dataView = new DataView(rawData);
-        let amrBlob = new Blob([dataView], {type: 'audio/amr'});
+        let amrBlob = new Blob([rawData.buffer], {type: 'audio/amr'});
         return amrBlob;
     }
 }

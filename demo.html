@@ -9,12 +9,17 @@
 </head>
 
 <body>
-<h2>解码 amr 文件、播放 - 2</h2>
+<h2>解码 amr 文件、播放 - 3</h2>
 <p id="sample-amr">
     <button id="sample-amr-load">加载、解码</button>
     <button id="sample-amr-play">播放</button>
     <button id="sample-amr-stop">停止</button>
     <a href="res/yuan.amr">yuan.amr</a>
+</p>
+<p id="record-amr">
+    <button id="record">开始录音</button>
+    <button id="play-record">播放录音</button>
+    <a href="#" id="down-record">下载录音amr文件</a>
 </p>
 <p>
     来个本地文件: <input type="file" id="amr-file" accept=".amr">
@@ -53,6 +58,28 @@
             amr.initWithBlob(this.files[0]);
         };
 
+        E('#record').onclick = function () {
+            if (amr && amr.isRecording()) {
+                E('#record').innerHTML = '开始录音';
+                amr.finishRecord().then(() => {
+                    E('#down-record').href = window.URL.createObjectURL(amr.getBlob());
+                });
+            } else {
+                E('#record').innerHTML = '停止录音';
+                amr = new BenzAMRPlayer();
+                amr.initWithRecord().then(() => {
+                    amr.startRecord();
+                });
+            }
+        };
+
+        E('#play-record').onclick = function () {
+            if (!amr.isInit()) {
+                alert('请先录音');
+                return;
+            }
+            amr.play();
+        };
     })();
 </script>
 </body>
