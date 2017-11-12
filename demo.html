@@ -13,131 +13,41 @@
 <p id="sample-amr">
     <button id="sample-amr-load">加载、解码</button>
     <button id="sample-amr-play">播放</button>
+    <button id="sample-amr-stop">停止</button>
     <a href="res/yuan.amr">yuan.amr</a>
 </p>
 <p>
     来个本地文件: <input type="file" id="amr-file" accept=".amr">
 </p>
-<script src="lib/amrnb.js" defer></script>
+<script src="./lib/amrnb.js"></script>
+<script src="./BenzAMRPlayer.js"></script>
 <script>
     (function () {
+        var amr;
+
         function E(selector) {
             return document.querySelector(selector);
         }
 
-        var sample;
         E('#sample-amr-load').onclick = function() {
-            fetchBlob(E('#sample-amr > a').href, function(blob) {
-                readBlob(blob, function (array) {
-                    sample = AMR.decode(array);
-                    alert('Loaded');
-                })
+            amr = new BenzAMRPlayer();
+            amr.initWithUrl('./res/yuan.amr').then(function () {
+                alert('loaded');
             });
         };
 
         E('#sample-amr-play').onclick = function () {
-            if (!sample) {
-                alert('请先加载解码');
-            }
-            playPcm(sample);
+            amr.play();
+        };
+
+        E('#sample-amr-stop').onclick = function () {
+            BenzAMRPlayer.stop();
         };
 
         E('#amr-file').onchange = function() {
-            playAmrBlob(this.files[0]);
+            amr = new BenzAMRPlayer();
+            amr.initWithBlob(this.files[0]);
         };
-
-        var AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
-        var gAudioContext = new AudioContext();
-
-        function getAudioContext() {
-            if (!gAudioContext) {
-                gAudioContext = new AudioContext();
-            }
-            return gAudioContext;
-        }
-
-        function fetchBlob(url, callback) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'blob';
-            xhr.onload = function() {
-                callback(this.response);
-            };
-            xhr.onerror = function() {
-                alert('Failed to fetch ' + url);
-            };
-            xhr.send();
-        }
-
-        function readBlob(blob, callback) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var data = new Uint8Array(e.target.result);
-                callback(data);
-            };
-            reader.readAsArrayBuffer(blob);
-        }
-
-        function playAmrBlob(blob, callback) {
-            readBlob(blob, function(data) {
-                playAmrArray(data);
-            });
-        }
-
-        function playAmrArray(array) {
-            var samples = AMR.decode(array);
-            if (!samples) {
-                alert('Failed to decode!');
-                return;
-            }
-            playPcm(samples);
-        }
-
-        function playPcm(samples) {
-            var ctx = getAudioContext();
-            var src = ctx.createBufferSource();
-            var buffer;
-            try {
-                buffer = ctx['createBuffer'](1, samples.length, 22050);
-                alert('Sample Rate 22050 ok');
-            } catch (e) {
-                alert('catch! Sample Rate 22050 error');
-            }
-            try {
-                buffer = ctx['createBuffer'](1, samples.length, 32000);
-                alert('Sample Rate 32000 ok');
-            } catch (e) {
-                alert('catch! Sample Rate 32000 error');
-            }
-            try {
-                buffer = ctx['createBuffer'](1, samples.length, 24000);
-                alert('Sample Rate 24000 ok');
-            } catch (e) {
-                alert('catch! Sample Rate 22050 error');
-            }
-            try {
-                buffer = ctx['createBuffer'](1, samples.length, 16000);
-                alert('Sample Rate 16000 ok');
-            } catch (e) {
-                alert('catch! Sample Rate 16000 error');
-            }
-            try {
-                buffer = ctx['createBuffer'](1, samples.length, 8000);
-                alert('Sample Rate 8000 ok');
-            } catch (e) {
-                alert('catch! Sample Rate 8000 error');
-            }
-            if (buffer.copyToChannel) {
-                buffer.copyToChannel(samples, 0, 0)
-            } else {
-                var channelBuffer = buffer.getChannelData(0);
-                channelBuffer.set(samples);
-            }
-
-            src.buffer = buffer;
-            src.connect(ctx.destination);
-            src.start();
-        }
 
     })();
 </script>

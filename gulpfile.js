@@ -13,26 +13,50 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var replace = require('gulp-replace');
 var bump = require('gulp-bump');
+var rollup = require('gulp-rollup');
+var concat = require('gulp-concat');
 
-gulp.task('uglify', function () {
-    gulp.src([
-        './lib/amrnb.js',
-        './src/benz-amr-recorder.js'
-    ])
+gulp.task('roll-es6', function () {
+    gulp.src(['./lib/*.js', './src/*.js'])
+        .pipe(rollup({
+            "format": "es",
+            input: './src/BenzAMRPlayer.js'
+        }))
+        .pipe(rename('BenzAMRRecorder-es6.js'))
+        .pipe(gulp.dest('.'));
+});
+
+gulp.task('roll', function () {
+    gulp.src(['./lib/*.js', './src/*.js'])
+        .pipe(rollup({
+            "format": "iife",
+            "plugins": [
+                require("rollup-plugin-babel")({
+                    "presets": [["es2015", { "modules": false }], "stage-0"],
+                    "babelrc": false,
+                    "plugins": ["external-helpers"]
+                })
+            ],
+            "name": "BenzAMRPlayer",
+            input: './src/BenzAMRPlayer.js'
+        }))
+        .pipe(rename('BenzAMRPlayer.js'))
+        .pipe(gulp.dest('.'));
+});
+
+gulp.task('roll-uglify', ['roll'], function () {
+    gulp.src(['./lib/amrnb.js', './BenzAMRPlayer.js'])
+        .pipe(concat('BenzAMRPlayer.min.js'))
         .pipe(uglify())
-        .pipe(rename('benzAmrRecorder.min.js'))
         .pipe(gulp.dest('.'));
 });
 
 gulp.task('bump', function () {
     var date = new Date();
-    gulp.src([
-        'package.json',
-        './src/benz-amr-recorder.js'
-    ])
+    gulp.src(['package.json', 'BenzAMRPlayer.js', 'src/BenzAMRPlayer.js'])
         .pipe(bump())
         .pipe(replace(/@date ([0-9\/]+)/, '@date ' + date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate()))
         .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['uglify', 'bump']);
+gulp.task('default', ['roll-es6', 'roll-uglify', 'bump']);
