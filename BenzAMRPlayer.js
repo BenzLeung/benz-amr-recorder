@@ -388,6 +388,7 @@ var playPcm = function playPcm(samples, sampleRate) {
 var stopPcm = function stopPcm() {
     if (curSourceNode) {
         curSourceNode.stop();
+        curSourceNode = null;
     }
 };
 

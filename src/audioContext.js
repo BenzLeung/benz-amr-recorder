@@ -63,6 +63,7 @@ export const playPcm = function (samples, sampleRate) {
 export const stopPcm = function () {
     if (curSourceNode) {
         curSourceNode.stop();
+        curSourceNode = null;
     }
 };
 
