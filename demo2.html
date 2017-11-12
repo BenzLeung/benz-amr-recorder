@@ -115,7 +115,7 @@
                 buffer = ctx['createBuffer'](1, samples.length, 24000);
                 alert('Sample Rate 24000 ok');
             } catch (e) {
-                alert('catch! Sample Rate 22050 error');
+                alert('catch! Sample Rate 24000 error');
             }
             if (buffer.copyToChannel) {
                 buffer.copyToChannel(newSamples, 0, 0)
