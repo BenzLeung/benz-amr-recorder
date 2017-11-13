@@ -12,11 +12,10 @@ import {
     generateRecordSamples, getRecordSampleRate, initRecorder, isRecording, playPcm, startRecord, stopPcm,
     stopRecord
 } from "./audioContext";
-/*import AMR from '../lib/amrnb';*/
 
 window.AMR = window.AMR || {};
 
-export default class BenzAMRPlayer {
+export default class BenzAMRRecorder {
 
     _isInit = false;
 
@@ -105,7 +104,7 @@ export default class BenzAMRPlayer {
             stopRecord();
             generateRecordSamples().then((samples) => {
                 this._samples = samples;
-                this._blob = BenzAMRPlayer.encodeAMR(samples, getRecordSampleRate());
+                this._blob = BenzAMRRecorder.encodeAMR(samples, getRecordSampleRate());
                 this._isInit = true;
                 resolve();
             })

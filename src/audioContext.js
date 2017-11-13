@@ -87,7 +87,7 @@ export const initRecorder = function () {
 };
 
 export const isRecording = function () {
-    return recorder.recording;
+    return recorder && recorder.recording;
 };
 
 export const startRecord = function () {

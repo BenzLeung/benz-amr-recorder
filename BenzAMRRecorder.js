@@ -1,4 +1,4 @@
-var BenzAMRPlayer = (function () {
+var BenzAMRRecorder = (function () {
 'use strict';
 
 var WORKER_ENABLED = !!(window && window.URL && window.Blob && window.Worker);
@@ -412,7 +412,7 @@ var initRecorder = function initRecorder() {
 };
 
 var isRecording = function isRecording() {
-    return recorder.recording;
+    return recorder && recorder.recording;
 };
 
 var startRecord = function startRecord() {
@@ -452,20 +452,18 @@ var generateRecordSamples = function generateRecordSamples() {
  * each engineer has a duty to keep the code elegant
  */
 
-/*import AMR from '../lib/amrnb';*/
-
 window.AMR = window.AMR || {};
 
-var BenzAMRPlayer = function () {
-    function BenzAMRPlayer() {
-        classCallCheck(this, BenzAMRPlayer);
+var BenzAMRRecorder = function () {
+    function BenzAMRRecorder() {
+        classCallCheck(this, BenzAMRRecorder);
         this._isInit = false;
         this._isInitRecorder = false;
         this._samples = new Float32Array(0);
         this._blob = null;
     }
 
-    createClass(BenzAMRPlayer, [{
+    createClass(BenzAMRRecorder, [{
         key: 'isInit',
         value: function isInit() {
             return this._isInit;
@@ -559,7 +557,7 @@ var BenzAMRPlayer = function () {
                 stopRecord();
                 generateRecordSamples().then(function (samples) {
                     _this5._samples = samples;
-                    _this5._blob = BenzAMRPlayer.encodeAMR(samples, getRecordSampleRate());
+                    _this5._blob = BenzAMRRecorder.encodeAMR(samples, getRecordSampleRate());
                     _this5._isInit = true;
                     resolve();
                 });
@@ -589,9 +587,9 @@ var BenzAMRPlayer = function () {
             return amrBlob;
         }
     }]);
-    return BenzAMRPlayer;
+    return BenzAMRRecorder;
 }();
 
-return BenzAMRPlayer;
+return BenzAMRRecorder;
 
 }());

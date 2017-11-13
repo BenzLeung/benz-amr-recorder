@@ -24,8 +24,7 @@
 <p>
     来个本地文件: <input type="file" id="amr-file" accept=".amr">
 </p>
-<script src="./lib/amrnb.js"></script>
-<script src="./BenzAMRPlayer.js"></script>
+<script src="./BenzAMRRecorder.min.js"></script>
 <script>
     (function () {
         var amr;
@@ -35,7 +34,7 @@
         }
 
         E('#sample-amr-load').onclick = function() {
-            amr = new BenzAMRPlayer();
+            amr = new BenzAMRRecorder();
             amr.initWithUrl('./res/yuan.amr').then(function () {
                 alert('loaded');
             });
@@ -50,11 +49,11 @@
         };
 
         E('#sample-amr-stop').onclick = function () {
-            BenzAMRPlayer.stop();
+            BenzAMRRecorder.stop();
         };
 
         E('#amr-file').onchange = function() {
-            amr = new BenzAMRPlayer();
+            amr = new BenzAMRRecorder();
             amr.initWithBlob(this.files[0]);
         };
 
@@ -66,7 +65,7 @@
                 });
             } else {
                 E('#record').innerHTML = '停止录音';
-                amr = new BenzAMRPlayer();
+                amr = new BenzAMRRecorder();
                 amr.initWithRecord().then(() => {
                     amr.startRecord();
                 });

@@ -20,7 +20,7 @@ gulp.task('roll-es6', function () {
     gulp.src(['./lib/*.js', './src/*.js'])
         .pipe(rollup({
             "format": "es",
-            input: './src/BenzAMRPlayer.js'
+            input: './src/BenzAMRRecorder.js'
         }))
         .pipe(rename('BenzAMRRecorder-es6.js'))
         .pipe(gulp.dest('.'));
@@ -37,23 +37,23 @@ gulp.task('roll', function () {
                     "plugins": ["external-helpers"]
                 })
             ],
-            "name": "BenzAMRPlayer",
-            input: './src/BenzAMRPlayer.js'
+            "name": "BenzAMRRecorder",
+            input: './src/BenzAMRRecorder.js'
         }))
-        .pipe(rename('BenzAMRPlayer.js'))
+        .pipe(rename('BenzAMRRecorder.js'))
         .pipe(gulp.dest('.'));
 });
 
 gulp.task('roll-uglify', ['roll'], function () {
-    gulp.src(['./lib/amrnb.js', './BenzAMRPlayer.js'])
-        .pipe(concat('BenzAMRPlayer.min.js'))
+    gulp.src(['./lib/amrnb.js', './BenzAMRRecorder.js'])
+        .pipe(concat('BenzAMRRecorder.min.js'))
         .pipe(uglify())
         .pipe(gulp.dest('.'));
 });
 
 gulp.task('bump', function () {
     var date = new Date();
-    gulp.src(['package.json', 'BenzAMRPlayer.js', 'src/BenzAMRPlayer.js'])
+    gulp.src(['package.json', 'BenzAMRRecorder.js', 'src/BenzAMRRecorder.js'])
         .pipe(bump())
         .pipe(replace(/@date ([0-9\/]+)/, '@date ' + date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate()))
         .pipe(gulp.dest('.'));
