@@ -152,7 +152,7 @@ export default class BenzAMRRecorder {
         if (this._onPlay) {
             this._onPlay();
         }
-        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback());
+        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback.bind(this));
     }
 
     stop() {
@@ -182,6 +182,10 @@ export default class BenzAMRRecorder {
                 resolve();
             })
         });
+    }
+
+    cancelRecord() {
+        stopRecord();
     }
 
     isRecording() {

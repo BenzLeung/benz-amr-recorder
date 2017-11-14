@@ -387,6 +387,7 @@ var playPcm = function playPcm(samples, sampleRate, onEnded) {
         channelBuffer.set(_samples);
     }
     curSourceNode['buffer'] = buffer;
+    curSourceNode['loop'] = false;
     curSourceNode['connect'](ctx['destination']);
     curSourceNode.onended = onEnded;
     curSourceNode.start();
@@ -471,6 +472,8 @@ var BenzAMRRecorder = function () {
         this._onEnded = null;
         this._onPlay = null;
         this._onStop = null;
+        this._onStartRecord = null;
+        this._onFinishRecord = null;
     }
 
     createClass(BenzAMRRecorder, [{
@@ -561,6 +564,12 @@ var BenzAMRRecorder = function () {
                     case 'ended':
                         this._onEnded = fn;
                         break;
+                    case 'startRecord':
+                        this._onStartRecord = fn;
+                        break;
+                    case 'finishRecord':
+                        this._onFinishRecord = fn;
+                        break;
                     default:
                 }
             }
@@ -581,6 +590,16 @@ var BenzAMRRecorder = function () {
             this.on('ended', fn);
         }
     }, {
+        key: 'onStartRecord',
+        value: function onStartRecord(fn) {
+            this.on('startRecord', fn);
+        }
+    }, {
+        key: 'onFinishRecord',
+        value: function onFinishRecord(fn) {
+            this.on('finishRecord', fn);
+        }
+    }, {
         key: '_onEndCallback',
         value: function _onEndCallback() {
             if (this._onEnded) {
@@ -596,12 +615,23 @@ var BenzAMRRecorder = function () {
             if (this._onPlay) {
                 this._onPlay();
             }
-            playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback());
+            playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback.bind(this));
+        }
+    }, {
+        key: 'stop',
+        value: function stop() {
+            stopPcm();
+            if (this._onStop) {
+                this._onStop();
+            }
         }
     }, {
         key: 'startRecord',
         value: function startRecord$$1() {
             startRecord();
+            if (this._onStartRecord) {
+                this._onStartRecord();
+            }
         }
     }, {
         key: 'finishRecord',
@@ -614,9 +644,17 @@ var BenzAMRRecorder = function () {
                     _this5._samples = samples;
                     _this5._blob = BenzAMRRecorder.encodeAMR(samples, getRecordSampleRate());
                     _this5._isInit = true;
+                    if (_this5._onFinishRecord) {
+                        _this5._onFinishRecord();
+                    }
                     resolve();
                 });
             });
+        }
+    }, {
+        key: 'cancelRecord',
+        value: function cancelRecord() {
+            stopRecord();
         }
     }, {
         key: 'isRecording',
@@ -629,11 +667,6 @@ var BenzAMRRecorder = function () {
             return this._blob;
         }
     }], [{
-        key: 'stop',
-        value: function stop() {
-            stopPcm();
-        }
-    }, {
         key: 'encodeAMR',
         value: function encodeAMR(samples, sampleRate) {
             sampleRate = sampleRate || 8000;

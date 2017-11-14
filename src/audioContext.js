@@ -62,6 +62,7 @@ export const playPcm = function (samples, sampleRate, onEnded) {
         channelBuffer.set(_samples);
     }
     curSourceNode['buffer'] = buffer;
+    curSourceNode['loop'] = false;
     curSourceNode['connect'](ctx['destination']);
     curSourceNode.onended = onEnded;
     curSourceNode.start();
