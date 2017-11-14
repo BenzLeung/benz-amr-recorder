@@ -345,18 +345,7 @@ if (AudioContext) {
     throw 'Web Audio API is Unsupported.';
 }
 
-var increaseSampleRate = function increaseSampleRate(samples, multiple) {
-    var sampleLen = samples.length;
-    var newSamples = new Float32Array(sampleLen * multiple);
-    for (var i = 0; i < sampleLen; i++) {
-        for (var j = 0; j < multiple; j++) {
-            newSamples[i * multiple + j] = samples[i];
-        }
-    }
-    return newSamples;
-};
-
-var playPcm = function playPcm(samples, sampleRate) {
+var playPcm = function playPcm(samples, sampleRate, onEnded) {
     sampleRate = sampleRate || 8000;
     stopPcm();
     curSourceNode = ctx['createBufferSource']();
@@ -367,11 +356,15 @@ var playPcm = function playPcm(samples, sampleRate) {
         buffer = ctx['createBuffer'](1, samples.length, sampleRate);
     } catch (e) {
         if (sampleRate < 11025) {
-            buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
-            _samples = increaseSampleRate(samples, 3);
+            /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
+            _samples = increaseSampleRate(samples, 3);*/
+            buffer = ctx['createBuffer'](1, samples.length, sampleRate * 4);
+            curSourceNode['playbackRate'].value = 0.25;
         } else {
-            buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
-            _samples = increaseSampleRate(samples, 2);
+            /*buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
+            _samples = increaseSampleRate(samples, 2);*/
+            buffer = ctx['createBuffer'](1, samples.length, sampleRate * 2);
+            curSourceNode['playbackRate'].value = 0.5;
         }
     }
     if (buffer['copyToChannel']) {
@@ -382,6 +375,7 @@ var playPcm = function playPcm(samples, sampleRate) {
     }
     curSourceNode['buffer'] = buffer;
     curSourceNode['connect'](ctx['destination']);
+    curSourceNode.onended = onEnded;
     curSourceNode.start();
 };
 
