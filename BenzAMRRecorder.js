@@ -528,10 +528,12 @@ var BenzAMRRecorder = function () {
         value: function initWithRecord() {
             var _this4 = this;
 
-            return new Promise(function (resolve) {
+            return new Promise(function (resolve, reject) {
                 initRecorder().then(function () {
                     _this4._isInitRecorder = true;
                     resolve();
+                }).catch(function (e) {
+                    reject(e);
                 });
             });
         }

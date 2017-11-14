@@ -32,7 +32,7 @@ const increaseSampleRate = function (samples, multiple) {
     return newSamples;
 };
 
-export const playPcm = function (samples, sampleRate) {
+export const playPcm = function (samples, sampleRate, onEnded) {
     sampleRate = sampleRate || 8000;
     stopPcm();
     curSourceNode = ctx['createBufferSource']();
@@ -42,11 +42,15 @@ export const playPcm = function (samples, sampleRate) {
         buffer = ctx['createBuffer'](1, samples.length, sampleRate);
     } catch (e) {
         if (sampleRate < 11025) {
-            buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
-            _samples = increaseSampleRate(samples, 3);
+            /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
+            _samples = increaseSampleRate(samples, 3);*/
+            buffer = ctx['createBuffer'](1, samples.length, sampleRate * 4);
+            curSourceNode['playbackRate'].value = 0.25;
         } else {
-            buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
-            _samples = increaseSampleRate(samples, 2);
+            /*buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
+            _samples = increaseSampleRate(samples, 2);*/
+            buffer = ctx['createBuffer'](1, samples.length, sampleRate * 2);
+            curSourceNode['playbackRate'].value = 0.5;
         }
     }
     if (buffer['copyToChannel']) {
@@ -57,6 +61,7 @@ export const playPcm = function (samples, sampleRate) {
     }
     curSourceNode['buffer'] = buffer;
     curSourceNode['connect'](ctx['destination']);
+    curSourceNode.onended = onEnded;
     curSourceNode.start();
 };
 

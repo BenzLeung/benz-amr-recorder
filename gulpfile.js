@@ -16,16 +16,6 @@ var bump = require('gulp-bump');
 var rollup = require('gulp-rollup');
 var concat = require('gulp-concat');
 
-gulp.task('roll-es6', function () {
-    gulp.src(['./lib/*.js', './src/*.js'])
-        .pipe(rollup({
-            "format": "es",
-            input: './src/BenzAMRRecorder.js'
-        }))
-        .pipe(rename('BenzAMRRecorder-es6.js'))
-        .pipe(gulp.dest('.'));
-});
-
 gulp.task('roll', function () {
     gulp.src(['./lib/*.js', './src/*.js'])
         .pipe(rollup({
@@ -53,10 +43,10 @@ gulp.task('roll-uglify', ['roll'], function () {
 
 gulp.task('bump', function () {
     var date = new Date();
-    gulp.src(['package.json', 'BenzAMRRecorder.js', 'src/BenzAMRRecorder.js'])
+    gulp.src(['package.json'])
         .pipe(bump())
         .pipe(replace(/@date ([0-9\/]+)/, '@date ' + date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate()))
         .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['roll-es6', 'roll-uglify', 'bump']);
+gulp.task('default', ['roll-uglify']);

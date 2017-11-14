@@ -76,10 +76,12 @@ export default class BenzAMRRecorder {
     }
 
     initWithRecord() {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             initRecorder().then(() => {
                 this._isInitRecorder = true;
                 resolve();
+            }).catch((e) => {
+                reject(e);
             });
         });
     }
