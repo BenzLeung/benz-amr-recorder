@@ -25,6 +25,16 @@ export default class BenzAMRRecorder {
 
     _blob = null;
 
+    _onEnded = null;
+
+    _onPlay = null;
+
+    _onStop = null;
+
+    _onStartRecord = null;
+
+    _onFinishRecord = null;
+
     isInit() {
         return this._isInit;
     }
@@ -86,19 +96,77 @@ export default class BenzAMRRecorder {
         });
     }
 
+    on(action, fn) {
+        if (typeof fn === 'function') {
+            switch (action) {
+                case 'play':
+                    this._onPlay = fn;
+                    break;
+                case 'stop':
+                    this._onStop = fn;
+                    break;
+                case 'ended':
+                    this._onEnded = fn;
+                    break;
+                case 'startRecord':
+                    this._onStartRecord = fn;
+                    break;
+                case 'finishRecord':
+                    this._onFinishRecord = fn;
+                    break;
+                default:
+            }
+        }
+    }
+
+    onPlay(fn) {
+        this.on('play', fn);
+    }
+
+    onStop(fn) {
+        this.on('stop', fn);
+    }
+
+    onEnded(fn) {
+        this.on('ended', fn);
+    }
+
+    onStartRecord(fn) {
+        this.on('startRecord', fn);
+    }
+
+    onFinishRecord(fn) {
+        this.on('finishRecord', fn);
+    }
+
+    _onEndCallback() {
+        if (this._onEnded) {
+            this._onEnded();
+        }
+    }
+
     play() {
         if (!this._isInit) {
             throw new Error('Please init AMR first.');
         }
-        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000);
+        if (this._onPlay) {
+            this._onPlay();
+        }
+        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback());
     }
 
-    static stop() {
+    stop() {
         stopPcm();
+        if (this._onStop) {
+            this._onStop();
+        }
     }
 
     startRecord() {
         startRecord();
+        if (this._onStartRecord) {
+            this._onStartRecord();
+        }
     }
 
     finishRecord() {
@@ -108,6 +176,9 @@ export default class BenzAMRRecorder {
                 this._samples = samples;
                 this._blob = BenzAMRRecorder.encodeAMR(samples, getRecordSampleRate());
                 this._isInit = true;
+                if (this._onFinishRecord) {
+                    this._onFinishRecord();
+                }
                 resolve();
             })
         });

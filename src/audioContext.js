@@ -20,7 +20,7 @@ if (AudioContext) {
 } else {
     throw 'Web Audio API is Unsupported.'
 }
-
+/*
 const increaseSampleRate = function (samples, multiple) {
     let sampleLen = samples.length;
     let newSamples = new Float32Array(sampleLen * multiple);
@@ -31,6 +31,7 @@ const increaseSampleRate = function (samples, multiple) {
     }
     return newSamples;
 };
+*/
 
 export const playPcm = function (samples, sampleRate, onEnded) {
     sampleRate = sampleRate || 8000;
@@ -41,6 +42,7 @@ export const playPcm = function (samples, sampleRate, onEnded) {
     try {
         buffer = ctx['createBuffer'](1, samples.length, sampleRate);
     } catch (e) {
+        // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
         if (sampleRate < 11025) {
             /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
             _samples = increaseSampleRate(samples, 3);*/

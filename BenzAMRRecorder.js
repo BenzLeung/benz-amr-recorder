@@ -344,6 +344,18 @@ if (AudioContext) {
 } else {
     throw 'Web Audio API is Unsupported.';
 }
+/*
+const increaseSampleRate = function (samples, multiple) {
+    let sampleLen = samples.length;
+    let newSamples = new Float32Array(sampleLen * multiple);
+    for (let i = 0; i < sampleLen; i ++) {
+        for (let j = 0; j < multiple; j ++) {
+            newSamples[i * multiple + j] = samples[i];
+        }
+    }
+    return newSamples;
+};
+*/
 
 var playPcm = function playPcm(samples, sampleRate, onEnded) {
     sampleRate = sampleRate || 8000;
@@ -355,6 +367,7 @@ var playPcm = function playPcm(samples, sampleRate, onEnded) {
     try {
         buffer = ctx['createBuffer'](1, samples.length, sampleRate);
     } catch (e) {
+        // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
         if (sampleRate < 11025) {
             /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
             _samples = increaseSampleRate(samples, 3);*/
@@ -455,6 +468,9 @@ var BenzAMRRecorder = function () {
         this._isInitRecorder = false;
         this._samples = new Float32Array(0);
         this._blob = null;
+        this._onEnded = null;
+        this._onPlay = null;
+        this._onStop = null;
     }
 
     createClass(BenzAMRRecorder, [{
@@ -532,12 +548,55 @@ var BenzAMRRecorder = function () {
             });
         }
     }, {
+        key: 'on',
+        value: function on(action, fn) {
+            if (typeof fn === 'function') {
+                switch (action) {
+                    case 'play':
+                        this._onPlay = fn;
+                        break;
+                    case 'stop':
+                        this._onStop = fn;
+                        break;
+                    case 'ended':
+                        this._onEnded = fn;
+                        break;
+                    default:
+                }
+            }
+        }
+    }, {
+        key: 'onPlay',
+        value: function onPlay(fn) {
+            this.on('play', fn);
+        }
+    }, {
+        key: 'onStop',
+        value: function onStop(fn) {
+            this.on('stop', fn);
+        }
+    }, {
+        key: 'onEnded',
+        value: function onEnded(fn) {
+            this.on('ended', fn);
+        }
+    }, {
+        key: '_onEndCallback',
+        value: function _onEndCallback() {
+            if (this._onEnded) {
+                this._onEnded();
+            }
+        }
+    }, {
         key: 'play',
         value: function play() {
             if (!this._isInit) {
                 throw new Error('Please init AMR first.');
             }
-            playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000);
+            if (this._onPlay) {
+                this._onPlay();
+            }
+            playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback());
         }
     }, {
         key: 'startRecord',
