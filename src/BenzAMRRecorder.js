@@ -68,6 +68,12 @@ export default class BenzAMRRecorder {
     }
 
     initWithUrl(url) {
+        // 先播放一个空音频，
+        // 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
+        // 播放空音频防止加载后立即播放的功能失效。
+        // 但即使如此，initWithUrl 仍然须放入一个用户事件中
+        playPcm(new Float32Array(10), 24000);
+
         const p = new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
