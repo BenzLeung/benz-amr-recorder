@@ -8,7 +8,7 @@
  * each engineer has a duty to keep the code elegant
  */
 
-import Recorder from '../lib/recorder';
+import Recorder from 'recorderjs';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
@@ -77,17 +77,27 @@ export const stopPcm = function () {
 
 let recorderStream = null;
 let recorder = null;
+let recording = false;
 
 export const initRecorder = function () {
     return new Promise((resolve, reject) => {
+        let s = (stream) => {
+            recorderStream = ctx['createMediaStreamSource'](stream);
+            recorder = new Recorder(recorderStream);
+            recording = false;
+            resolve();
+        };
+        let j = (e) => {
+            reject(e);
+        };
         if (!recorder) {
-            window.navigator.getUserMedia({audio: true}, (stream) => {
-                recorderStream = ctx['createMediaStreamSource'](stream);
-                recorder = new Recorder(recorderStream);
-                resolve();
-            }, (e) => {
-                reject(e);
-            });
+            if (window.navigator.mediaDevices.getUserMedia) {
+                window.navigator.mediaDevices.getUserMedia({audio: true}).then(s).catch(j);
+            } else if (window.navigator.getUserMedia) {
+                window.navigator.getUserMedia({audio: true}, s, j);
+            } else {
+                j();
+            }
         } else {
             resolve();
         }
@@ -95,23 +105,25 @@ export const initRecorder = function () {
 };
 
 export const isRecording = function () {
-    return recorder && recorder.recording;
+    return recorder && recording;
 };
 
 export const startRecord = function () {
     if (recorder) {
         recorder.clear();
         recorder.record();
+        recording = true;
     }
 };
 
 export const stopRecord = function () {
     if (recorder) {
         recorder.stop();
+        recording = false;
     }
 };
 
-export const getRecordSampleRate = function () {
+export const getCtxSampleRate = function () {
     return ctx.sampleRate;
 };
 
@@ -122,5 +134,11 @@ export const generateRecordSamples = function () {
                 resolve(buffers[0]);
             });
         }
+    });
+};
+
+export const decodeAudioArrayBufferByContext = function (array) {
+    return new Promise((resolve, reject) => {
+        ctx['decodeAudioData'](array, resolve, reject);
     });
 };

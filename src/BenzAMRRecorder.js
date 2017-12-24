@@ -9,11 +9,18 @@
  */
 
 import {
-    generateRecordSamples, getRecordSampleRate, initRecorder, isRecording, playPcm, startRecord, stopPcm,
+    decodeAudioArrayBufferByContext,
+    generateRecordSamples,
+    getCtxSampleRate,
+    initRecorder,
+    isRecording,
+    playPcm,
+    startRecord,
+    stopPcm,
     stopRecord
 } from "./audioContext";
 
-window.AMR = window.AMR || {};
+import AMR from "../lib/amrnb";
 
 export default class BenzAMRRecorder {
 
@@ -22,6 +29,8 @@ export default class BenzAMRRecorder {
     _isInitRecorder = false;
 
     _samples = new Float32Array(0);
+
+    _rawData = new Uint8Array(0);
 
     _blob = null;
 
@@ -35,39 +44,60 @@ export default class BenzAMRRecorder {
 
     _onFinishRecord = null;
 
+    _isPlaying = false;
+
     isInit() {
         return this._isInit;
     }
 
-    initWithAMRArray(array) {
-        this._samples = AMR.decode(array);
-        this._isInit = true;
-
+    initWithArrayBuffer(array) {
+        if (this._isInit || this._isInitRecorder) {
+            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+        }
         return new Promise((resolve, reject) => {
+            let u8Array = new Uint8Array(array);
+            this._samples = AMR.decode(u8Array);
+            this._isInit = true;
+
             if (!this._samples) {
-                reject(new Error('Failed to decode.'));
+                decodeAudioArrayBufferByContext(array).then((data) => {
+                    this._isInit = true;
+                    this._rawData = BenzAMRRecorder.encodeAMR(new Float32Array(data), getCtxSampleRate());
+                    this._samples = AMR.decode(this._rawData);
+                    this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
+                    resolve();
+                }).catch(() => {
+                    reject(new Error('Failed to decode.'));
+                });
             } else {
+                this._rawData = u8Array;
                 resolve();
             }
+
         });
     }
 
     initWithBlob(blob) {
+        if (this._isInit || this._isInitRecorder) {
+            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+        }
         this._blob = blob;
         const p = new Promise((resolve) => {
             let reader = new FileReader();
             reader.onload = function(e) {
-                let data = new Uint8Array(e.target.result);
-                resolve(data);
+                resolve(e.target.result);
             };
             reader.readAsArrayBuffer(blob);
         });
         return p.then((data) => {
-            return this.initWithAMRArray(data);
+            return this.initWithArrayBuffer(data);
         });
     }
 
     initWithUrl(url) {
+        if (this._isInit || this._isInitRecorder) {
+            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+        }
         // 先播放一个空音频，
         // 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
         // 播放空音频防止加载后立即播放的功能失效。
@@ -76,8 +106,8 @@ export default class BenzAMRRecorder {
 
         const p = new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'blob';
+            xhr.open('GET', url, true);
+            xhr.responseType = 'arraybuffer';
             xhr.onload = function() {
                 resolve(this.response);
             };
@@ -86,12 +116,15 @@ export default class BenzAMRRecorder {
             };
             xhr.send();
         });
-        return p.then((blob) => {
-            return this.initWithBlob(blob);
+        return p.then((array) => {
+            return this.initWithArrayBuffer(array);
         });
     }
 
     initWithRecord() {
+        if (this._isInit || this._isInitRecorder) {
+            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+        }
         return new Promise((resolve, reject) => {
             initRecorder().then(() => {
                 this._isInitRecorder = true;
@@ -146,6 +179,10 @@ export default class BenzAMRRecorder {
     }
 
     _onEndCallback() {
+        this._isPlaying = false;
+        if (this._onStop) {
+            this._onStop();
+        }
         if (this._onEnded) {
             this._onEnded();
         }
@@ -158,14 +195,20 @@ export default class BenzAMRRecorder {
         if (this._onPlay) {
             this._onPlay();
         }
-        playPcm(this._samples, this._isInitRecorder ? getRecordSampleRate() : 8000, this._onEndCallback.bind(this));
+        this._isPlaying = true;
+        playPcm(this._samples, this._isInitRecorder ? getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
     }
 
     stop() {
         stopPcm();
+        this._isPlaying = false;
         if (this._onStop) {
             this._onStop();
         }
+    }
+
+    isPlaying() {
+        return this._isPlaying;
     }
 
     startRecord() {
@@ -180,7 +223,8 @@ export default class BenzAMRRecorder {
             stopRecord();
             generateRecordSamples().then((samples) => {
                 this._samples = samples;
-                this._blob = BenzAMRRecorder.encodeAMR(samples, getRecordSampleRate());
+                this._rawData = BenzAMRRecorder.encodeAMR(samples, getCtxSampleRate());
+                this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
                 this._isInit = true;
                 if (this._onFinishRecord) {
                     this._onFinishRecord();
@@ -198,14 +242,21 @@ export default class BenzAMRRecorder {
         return isRecording();
     }
 
+    getDuration() {
+        let rate = this._isInitRecorder ? getCtxSampleRate() : 8000;
+        return this._samples.length / rate;
+    }
+
     getBlob() {
         return this._blob;
     }
 
     static encodeAMR(samples, sampleRate) {
         sampleRate = sampleRate || 8000;
-        let rawData = AMR.encode(samples, sampleRate, 7);
-        let amrBlob = new Blob([rawData.buffer], {type: 'audio/amr'});
-        return amrBlob;
+        return AMR.encode(samples, sampleRate, 7);
+    }
+
+    static rawAMRData2Blob(data) {
+        return new Blob([data.buffer], {type: 'audio/amr'});
     }
 }

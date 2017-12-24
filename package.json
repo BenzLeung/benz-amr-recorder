@@ -1,0 +1,42 @@
+{
+  "name": "benz-amr-recorder",
+  "version": "1.0.0",
+  "description": "amr 音频录制与播放（微信语音所用的格式）",
+  "main": "BenzAMRRecorder.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build-uglify": "uglifyjs \"./BenzAMRRecorder.js\" -o \"./BenzAMRRecorder.min.js\"",
+    "build-browserify": "browserify \"./src/index.js\" > \"./BenzAMRRecorder.js\" -t [ babelify --presets [ env stage-0 ] --ignore amrnb ] -s BenzAMRRecorder -i crypto -i buffer",
+    "build": "npm run build-browserify && npm run build-uglify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BenzLeung/benz-amr-recorder.git"
+  },
+  "keywords": [
+    "amr",
+    "Web Audio API",
+    "record",
+    "userMedia"
+  ],
+  "author": "Benz Leung",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BenzLeung/benz-amr-recorder/issues"
+  },
+  "homepage": "https://github.com/BenzLeung/benz-amr-recorder#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "babelify": "^8.0.0",
+    "browserify": "^14.5.0",
+    "uglify-js": "^3.2.1",
+    "workerify": "^1.1.0"
+  },
+  "dependencies": {
+    "recorderjs": "^1.0.1"
+  }
+}

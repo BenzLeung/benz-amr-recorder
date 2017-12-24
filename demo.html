@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
     <meta charset="UTF-8">
@@ -9,75 +8,127 @@
 </head>
 
 <body>
-<h2>amr 文件 解码+播放、录音+编码</h2>
-<p id="sample-amr">
-    <button id="sample-amr-load">加载、解码</button>
-    <button id="sample-amr-play">播放</button>
-    <button id="sample-amr-stop">停止</button>
-    <a href="res/yuan.amr">yuan.amr</a>
-</p>
-<p id="record-amr">
-    <button id="record">开始录音</button>
-    <button id="play-record">播放录音</button>
-    <a href="#" id="down-record">下载录音amr文件</a>
-</p>
-<p>
-    来个本地文件: <input type="file" id="amr-file" accept=".amr">
-</p>
-<script src="./BenzAMRRecorder.min.js"></script>
+<h1>amr 文件处理演示</h1>
+<h2>解码、播放</h2>
+<div id="player-amr">
+    <p>
+        加载演示文件：<button id="amr-load">加载、解码</button>
+        <a href="res/mario.amr">下载演示文件：mario.amr</a>
+    </p>
+    <p>
+        加载本地文件：<input type="file" id="amr-file" accept=".amr">（不会上传到任何服务器）
+    </p>
+    <p>
+        <button id="amr-play" disabled>播放</button>
+        <span id="amr-duration">0'</span>
+    </p>
+</div>
+<h2>录音、编码</h2>
+<div id="recorder-amr">
+    <p>
+        <button id="amr-record">开始录音</button>（不会上传到任何服务器）
+    </p>
+    <p>
+        <button id="amr-play-record" disabled>播放录音</button>
+        <a href="#" id="amr-down-record"><!--下载录音amr文件--></a>
+        <span id="amr-record-duration">0'</span>
+    </p>
+</div>
+<script src="./BenzAMRRecorder.js"></script>
+<!--suppress ES6ModulesDependencies, ES6ConvertVarToLetConst -->
 <script>
     (function () {
-        var amr;
-
         function E(selector) {
             return document.querySelector(selector);
         }
 
-        E('#sample-amr-load').onclick = function() {
+        /**** 解码、播放 ****/
+
+        var amr;
+
+        var loadDemoBtn = E('#amr-load');
+        var loadAmrFile = E('#amr-file');
+        var playBtn = E('#amr-play');
+        var duration = E('#amr-duration');
+
+        loadDemoBtn.onclick = function() {
             amr = new BenzAMRRecorder();
-            amr.initWithUrl('./res/yuan.amr').then(function () {
-                alert('loaded');
+            loadDemoBtn.setAttribute('disabled', true);
+            loadAmrFile.setAttribute('disabled', true);
+            playBtn.setAttribute('disabled', true);
+            amr.initWithUrl('./res/mario.amr').then(function () {
+                loadDemoBtn.removeAttribute('disabled');
+                loadAmrFile.removeAttribute('disabled');
+                playBtn.removeAttribute('disabled');
+                duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
             });
         };
 
-        E('#sample-amr-play').onclick = function () {
-            if (!amr.isInit()) {
-                alert('请先加载');
-                return;
+        playBtn.onclick = function () {
+            if (amr.isPlaying()) {
+                amr.stop();
+                playBtn.innerHTML = '播放';
+            } else {
+                amr.play();
+                playBtn.innerHTML = '停止';
+                amr.onEnded(function () {
+                    playBtn.innerHTML = '播放';
+                });
             }
-            amr.play();
         };
 
-        E('#sample-amr-stop').onclick = function () {
-            amr.stop();
-        };
-
-        E('#amr-file').onchange = function() {
+        loadAmrFile.onchange = function() {
             amr = new BenzAMRRecorder();
-            amr.initWithBlob(this.files[0]);
+            loadDemoBtn.setAttribute('disabled', true);
+            loadAmrFile.setAttribute('disabled', true);
+            playBtn.setAttribute('disabled', true);
+            amr.initWithBlob(this.files[0]).then(function () {
+                loadDemoBtn.removeAttribute('disabled');
+                loadAmrFile.removeAttribute('disabled');
+                playBtn.removeAttribute('disabled');
+                duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
+            });
         };
 
-        E('#record').onclick = function () {
-            if (amr && amr.isRecording()) {
-                E('#record').innerHTML = '开始录音';
-                amr.finishRecord().then(() => {
-                    E('#down-record').href = window.URL.createObjectURL(amr.getBlob());
+        /***** 录音、编码 *****/
+
+        var amrForRecorder;
+
+        var recordBtn = E('#amr-record');
+        var playRecordBtn = E('#amr-play-record');
+        var downRecordLink = E('#amr-down-record');
+
+        recordBtn.onclick = function () {
+            if (amrForRecorder && amrForRecorder.isRecording()) {
+                recordBtn.innerHTML = '开始录音';
+                playRecordBtn.removeAttribute('disabled');
+                amrForRecorder.finishRecord().then(() => {
+                    downRecordLink.href = window.URL.createObjectURL(amrForRecorder.getBlob());
+                    downRecordLink.innerHTML = '下载录音amr文件';
                 });
             } else {
-                E('#record').innerHTML = '停止录音';
-                amr = new BenzAMRRecorder();
-                amr.initWithRecord().then(() => {
-                    amr.startRecord();
+                recordBtn.innerHTML = '停止录音';
+                playRecordBtn.setAttribute('disabled', true);
+                amrForRecorder = new BenzAMRRecorder();
+                amrForRecorder.initWithRecord().then(() => {
+                    amrForRecorder.startRecord();
+                }).catch(function(e) {
+                    alert(JSON.stringify(e));
                 });
             }
         };
 
-        E('#play-record').onclick = function () {
-            if (!amr.isInit()) {
-                alert('请先录音');
-                return;
+        playRecordBtn.onclick = function () {
+            if (amrForRecorder.isPlaying()) {
+                amrForRecorder.stop();
+                playRecordBtn.innerHTML = '播放录音';
+            } else {
+                amrForRecorder.play();
+                playRecordBtn.innerHTML = '停止播放';
+                amrForRecorder.onEnded(function () {
+                    playRecordBtn.innerHTML = '播放录音';
+                });
             }
-            amr.play();
         };
     })();
 </script>
