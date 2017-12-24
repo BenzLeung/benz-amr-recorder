@@ -8,7 +8,7 @@
 </head>
 
 <body>
-<h1>amr 文件处理演示</h1>
+<h1>AMR 录音机 Demo</h1>
 <h2>解码、播放</h2>
 <div id="player-amr">
     <p>
@@ -97,6 +97,7 @@
         var recordBtn = E('#amr-record');
         var playRecordBtn = E('#amr-play-record');
         var downRecordLink = E('#amr-down-record');
+        var recordDuration = E('#amr-record-duration');
 
         recordBtn.onclick = function () {
             if (amrForRecorder && amrForRecorder.isRecording()) {
@@ -105,6 +106,7 @@
                 amrForRecorder.finishRecord().then(() => {
                     downRecordLink.href = window.URL.createObjectURL(amrForRecorder.getBlob());
                     downRecordLink.innerHTML = '下载录音amr文件';
+                    recordDuration.innerHTML = amrForRecorder.getDuration().toFixed(2) + '\'';
                 });
             } else {
                 recordBtn.innerHTML = '停止录音';

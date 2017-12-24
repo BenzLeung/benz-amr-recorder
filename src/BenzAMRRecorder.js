@@ -42,14 +42,25 @@ export default class BenzAMRRecorder {
 
     _onStartRecord = null;
 
+    _onCancelRecord = null;
+
     _onFinishRecord = null;
 
     _isPlaying = false;
 
+    /**
+     * 是否已经初始化
+     * @return {boolean}
+     */
     isInit() {
         return this._isInit;
     }
 
+    /**
+     * 使用浮点数据初始化
+     * @param {Float32Array} array
+     * @return {Promise}
+     */
     initWithArrayBuffer(array) {
         if (this._isInit || this._isInitRecorder) {
             throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
@@ -77,6 +88,11 @@ export default class BenzAMRRecorder {
         });
     }
 
+    /**
+     * 使用 Blob 对象初始化（ <input type="file">）
+     * @param {Blob} blob
+     * @return {Promise}
+     */
     initWithBlob(blob) {
         if (this._isInit || this._isInitRecorder) {
             throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
@@ -94,6 +110,11 @@ export default class BenzAMRRecorder {
         });
     }
 
+    /**
+     * 使用 url 初始化
+     * @param {string} url
+     * @return {Promise}
+     */
     initWithUrl(url) {
         if (this._isInit || this._isInitRecorder) {
             throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
@@ -121,6 +142,10 @@ export default class BenzAMRRecorder {
         });
     }
 
+    /**
+     * 初始化录音
+     * @return {Promise}
+     */
     initWithRecord() {
         if (this._isInit || this._isInitRecorder) {
             throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
@@ -150,6 +175,9 @@ export default class BenzAMRRecorder {
                 case 'startRecord':
                     this._onStartRecord = fn;
                     break;
+                case 'cancelRecord':
+                    this._onCancelRecord = fn;
+                    break;
                 case 'finishRecord':
                     this._onFinishRecord = fn;
                     break;
@@ -158,24 +186,52 @@ export default class BenzAMRRecorder {
         }
     }
 
+    /**
+     * 播放事件
+     * @param {Function} fn
+     */
     onPlay(fn) {
         this.on('play', fn);
     }
 
+    /**
+     * 停止事件（包括播放结束）
+     * @param {Function} fn
+     */
     onStop(fn) {
         this.on('stop', fn);
     }
 
+    /**
+     * 播放结束事件
+     * @param {Function} fn
+     */
     onEnded(fn) {
         this.on('ended', fn);
     }
 
+    /**
+     * 开始录音事件
+     * @param {Function} fn
+     */
     onStartRecord(fn) {
         this.on('startRecord', fn);
     }
 
+    /**
+     * 结束录音事件
+     * @param {Function} fn
+     */
     onFinishRecord(fn) {
         this.on('finishRecord', fn);
+    }
+
+    /**
+     * 放弃录音事件
+     * @param {Function} fn
+     */
+    onCancelRecord(fn) {
+        this.on('cancelRecord', fn);
     }
 
     _onEndCallback() {
@@ -188,6 +244,9 @@ export default class BenzAMRRecorder {
         }
     }
 
+    /**
+     * 播放
+     */
     play() {
         if (!this._isInit) {
             throw new Error('Please init AMR first.');
@@ -199,6 +258,9 @@ export default class BenzAMRRecorder {
         playPcm(this._samples, this._isInitRecorder ? getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
     }
 
+    /**
+     * 停止
+     */
     stop() {
         stopPcm();
         this._isPlaying = false;
@@ -207,10 +269,17 @@ export default class BenzAMRRecorder {
         }
     }
 
+    /**
+     * 是否正在播放
+     * @return {boolean}
+     */
     isPlaying() {
         return this._isPlaying;
     }
 
+    /**
+     * 开始录音
+     */
     startRecord() {
         startRecord();
         if (this._onStartRecord) {
@@ -218,6 +287,10 @@ export default class BenzAMRRecorder {
         }
     }
 
+    /**
+     * 结束录音，并把录制的音频转换成 AMR
+     * @return {Promise}
+     */
     finishRecord() {
         return new Promise((resolve) => {
             stopRecord();
@@ -234,14 +307,28 @@ export default class BenzAMRRecorder {
         });
     }
 
+    /**
+     * 放弃录音
+     */
     cancelRecord() {
         stopRecord();
+        if (this._onCancelRecord) {
+            this._onCancelRecord();
+        }
     }
 
+    /**
+     * 是否正在录音
+     * @return {boolean}
+     */
     isRecording() {
         return isRecording();
     }
 
+    /**
+     * 获取音频的时间长度（单位：秒）
+     * @return {Number}
+     */
     getDuration() {
         let rate = this._isInitRecorder ? getCtxSampleRate() : 8000;
         return this._samples.length / rate;
