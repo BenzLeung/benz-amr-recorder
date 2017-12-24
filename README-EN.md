@@ -1,21 +1,23 @@
-# AMR 录音机
+# AMR Recorder
 
-纯前端解码、播放、录音、编码 AMR 音频，无须服务器支持，基于 [amr.js](https://github.com/jpemartins/amr.js) 和 [RecorderJs](https://github.com/jergason/Recorderjs)。
+Play, record, reformat AMR audio, in pure Javascript, without any server.
 
-## 特性
+This project is based on [amr.js](https://github.com/jpemartins/amr.js) and [RecorderJs](https://github.com/jergason/Recorderjs).
 
- - 方便的 API 实现解码、播放、录音、编码 AMR 文件。
- - 支持 url 和 blob （即`<input type="file">`）方式获取 AMR。
- - 支持将浏览器 `<audio>` 所支持的音频格式（例如 MP3 或 OGG 音频）转换成 AMR 音频。
- - 编码后的 AMR 文件可下载，无须服务器。
+## Feature
+
+ - Simple API for playing and recording AMR audio.
+ - Supported url or blob (e.g. `<input type="file">`) to initialize AMR.
+ - Supported reformat audio which browser is supported (such as MP3 or OGG) to AMR audio.
+ - AMR that is encoded could be downloaded, without any server.
  
 ## Demo
 
-[demo.html](https://benzleung.github.io/benz-amr-recorder/demo.html)
+[demo-en.html](https://benzleung.github.io/benz-amr-recorder/demo-en.html)
 
-## 用法
+## Usage
 
-播放 AMR：
+Play an AMR:
 
 ```javascript
 var amr = new BenzAMRRecorder();
@@ -27,7 +29,7 @@ amr.onEnded(function() {
 })
 ```
 
-播放本地文件：
+Play a local file:
 
 ```html
 <input type="file" id="amr-file" accept=".amr">
@@ -43,7 +45,7 @@ amrFileObj.onchange = function() {
 }
 ```
 
-录制 AMR：
+Record AMR:
 
 ```javascript
 var amrRec = new BenzAMRRecorder();
@@ -52,13 +54,13 @@ amrRec.initWithRecord().then(function() {
 });
 ```
 
-下载 AMR：
+Download AMR:
 
 ```javascript
 window.location.href = window.URL.createObjectURL(amr.getBlob());
 ```
 
-把 MP3 转换成 AMR （需要浏览器原生支持 MP3）：
+Reformat MP3 to AMR (Need browser support MP3 format):
 
 ```javascript
 var amrFromMp3 = new BenzAMRRecorder();
@@ -70,11 +72,11 @@ amrFromMp3.initWithUrl('path/to/file.mp3').then(function() {
 
 ## API
 
-#### 初始化对象
+#### Initialize
 
 ```javascript
 /**
- * 是否已经初始化
+ * If AMR was initialized
  * @return {boolean}
  */
 amr.isInit();
@@ -82,7 +84,7 @@ amr.isInit();
 
 ```javascript
 /**
- * 使用浮点数据初始化
+ * Init with Float32Array
  * @param {Float32Array} array
  * @return {Promise}
  */
@@ -91,7 +93,7 @@ amr.initWithArrayBuffer(array);
 
 ```javascript
 /**
- * 使用 Blob 对象初始化（ <input type="file">）
+ * Init with Blob object ( <input type="file"> )
  * @param {Blob} blob
  * @return {Promise}
  */
@@ -100,7 +102,7 @@ amr.initWithBlob(blob);
 
 ```javascript
 /**
- * 使用 url 初始化
+ * Init with URL
  * @param {string} url
  * @return {Promise}
  */
@@ -109,19 +111,19 @@ amr.initWithUrl(url);
 
 ```javascript
 /**
- * 初始化录音
+ * Initialize record
  * @return {Promise}
  */
 amr.initWithRecord();
 ```
 
-#### 事件
+#### Event listeners
 
-**注意：事件不会叠加，也就是说，新注册的事件将覆盖掉旧的事件。**
+**Notice: They will NOT add the event listener. They simply cover the old listener only.**
 
 ```javascript
 /**
- * 播放
+ * On play
  * @param {Function} fn
  */
 amr.onPlay(function() {
@@ -131,7 +133,7 @@ amr.onPlay(function() {
 
 ```javascript
 /**
- * 停止（包括播放结束）
+ * On stop (Include onEnded)
  * @param {Function} fn
  */
 amr.onStop(function() {
@@ -141,7 +143,7 @@ amr.onStop(function() {
 
 ```javascript
 /**
- * 播放结束
+ * on play ended
  * @param {Function} fn
  */
 amr.onEnded(function() {
@@ -151,7 +153,7 @@ amr.onEnded(function() {
 
 ```javascript
 /**
- * 开始录音
+ * on start record
  * @param {Function} fn
  */
 amr.onStartRecord(function() {
@@ -161,7 +163,7 @@ amr.onStartRecord(function() {
 
 ```javascript
 /**
- * 结束录音
+ * on finish record
  * @param {Function} fn
  */
 amr.onFinishRecord(function() {
@@ -169,42 +171,42 @@ amr.onFinishRecord(function() {
 });
 ```
 
-#### 播放控制
+#### Playing controls
 
 ```javascript
 /**
- * 播放
+ * play
  */
 amr.play();
 ```
 
 ```javascript
 /**
- * 停止
+ * stop
  */
 amr.stop();
 ```
 
 ```javascript
 /**
- * 是否正在播放
+ * If AMR was playing
  * @return {boolean}
  */
 amr.isPlaying();
 ```
 
-#### 录音控制
+#### Recording controls
 
 ```javascript
 /**
- * 开始录音
+ * Start record
  */
 amr.startRecord();
 ```
 
 ```javascript
 /**
- * 结束录音，并把录制的音频转换成 AMR
+ * Finish record, and then reformat to AMR
  * @return {Promise}
  */
 amr.finishRecord();
@@ -212,24 +214,24 @@ amr.finishRecord();
 
 ```javascript
 /**
- * 放弃录音
+ * Cancel record
  */
 amr.cancelRecord();
 ```
 
 ```javascript
 /**
- * 是否正在录音
+ * If it was recording
  * @return {boolean}
  */
 amr.isRecording();
 ```
 
-#### 其他
+#### Other APIs
 
 ```javascript
 /**
- * 获取音频的时间长度（单位：秒）
+ * Get duration of the AMR (by second)
  * @return {Number}
  */
 amr.getDuration();
@@ -237,18 +239,18 @@ amr.getDuration();
 
 ```javascript
 /**
- * 获取 AMR 文件的 Blob 对象（用于下载文件）
+ * Get the Blob object of the AMR file (Use for download)
  * @return {Blob}
  */
 amr.getBlob();
 ```
 
-# 尚未完成的特性
+# Todo list
 
- - 使用 Worker 编码解码 AMR。
- - 暂停功能。
- - 播放进度控制。
+ - Encode & decode with WebWorker.
+ - Pause function.
+ - Playing progress and jump to a position.
 
-# 许可
+# License
 
 MIT.
