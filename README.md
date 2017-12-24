@@ -2,6 +2,8 @@
 
 纯前端解码、播放、录音、编码 AMR 音频，无须服务器支持，基于 [amr.js](https://github.com/jpemartins/amr.js) 和 [RecorderJs](https://github.com/jergason/Recorderjs)。
 
+注意：由于使用了 amr.js 做编码和解码，因此 js 文件（压缩后，未 gzip）接近 500 KB，使用前请考虑。
+
 ## 特性
 
  - 方便的 API 实现解码、播放、录音、编码 AMR 文件。
@@ -12,6 +14,24 @@
 ## Demo
 
 [demo.html](https://benzleung.github.io/benz-amr-recorder/demo.html)
+
+## 安装
+
+方法一：引入 js 文件
+
+```html
+<script type="text/javascript" src="./BenzAMRRecorder.min.js"></script>
+```
+
+方法二：使用 npm
+
+```
+npm install benz-amr-recorder
+```
+
+```javascript
+var BenzAMRRecorder = require('benz-amr-recorder');
+```
 
 ## 用法
 

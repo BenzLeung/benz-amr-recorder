@@ -4,6 +4,8 @@ Play, record, reformat AMR audio, in pure Javascript, without any server.
 
 This project is based on [amr.js](https://github.com/jpemartins/amr.js) and [RecorderJs](https://github.com/jergason/Recorderjs).
 
+NOTE: Since amr.js is used for encoding and decoding, the js file is close to 500 KB (minified, no gzipped), please consider before use.
+
 ## Feature
 
  - Simple API for playing and recording AMR audio.
@@ -14,6 +16,24 @@ This project is based on [amr.js](https://github.com/jpemartins/amr.js) and [Rec
 ## Demo
 
 [demo-en.html](https://benzleung.github.io/benz-amr-recorder/demo-en.html)
+
+## Setup
+
+Load the JS file directly:
+
+```html
+<script type="text/javascript" src="./BenzAMRRecorder.min.js"></script>
+```
+
+OR use npm:
+
+```
+npm install benz-amr-recorder
+```
+
+```javascript
+var BenzAMRRecorder = require('benz-amr-recorder');
+```
 
 ## Usage
 
