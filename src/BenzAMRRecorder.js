@@ -20,7 +20,7 @@ import {
     stopRecord
 } from "./audioContext";
 
-import AMR from "../lib/amrnb";
+const WORKER_PATH = './amrWorker.min.js';
 
 export default class BenzAMRRecorder {
 
@@ -47,6 +47,20 @@ export default class BenzAMRRecorder {
     _onFinishRecord = null;
 
     _isPlaying = false;
+    
+    _amrWorker;
+    
+    _amrResolves = {};
+    
+    _amrSeq = 1;
+    
+    constructor() {
+        this._amrWorker = new Worker(WORKER_PATH);
+        this._amrWorker.onmessage = (e) => {
+            this._amrResolves[e.data.seq + ''](e.data.amr);
+            delete this._amrResolves[e.data.seq + ''];
+        };
+    }
 
     /**
      * 是否已经初始化
@@ -67,24 +81,29 @@ export default class BenzAMRRecorder {
         }
         return new Promise((resolve, reject) => {
             let u8Array = new Uint8Array(array);
-            this._samples = AMR.decode(u8Array);
-            this._isInit = true;
+            this.decodeAMRAsync(u8Array).then((samples) => {
+                this._samples = samples;
+                this._isInit = true;
 
-            if (!this._samples) {
-                decodeAudioArrayBufferByContext(array).then((data) => {
-                    this._isInit = true;
-                    this._rawData = BenzAMRRecorder.encodeAMR(new Float32Array(data), getCtxSampleRate());
-                    this._samples = AMR.decode(this._rawData);
-                    this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
+                if (!this._samples) {
+                    decodeAudioArrayBufferByContext(array).then((data) => {
+                        this._isInit = true;
+                        return this.encodeAMRAsync(new Float32Array(data), getCtxSampleRate());
+                    }).then((ramData) => {
+                        this._rawData = ramData;
+                        return this.decodeAMRAsync(ramData);
+                    }).then((sample) => {
+                        this._samples = sample;
+                        this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
+                        resolve();
+                    }).catch(() => {
+                        reject(new Error('Failed to decode.'));
+                    });
+                } else {
+                    this._rawData = u8Array;
                     resolve();
-                }).catch(() => {
-                    reject(new Error('Failed to decode.'));
-                });
-            } else {
-                this._rawData = u8Array;
-                resolve();
-            }
-
+                }
+            });
         });
     }
 
@@ -296,14 +315,16 @@ export default class BenzAMRRecorder {
             stopRecord();
             generateRecordSamples().then((samples) => {
                 this._samples = samples;
-                this._rawData = BenzAMRRecorder.encodeAMR(samples, getCtxSampleRate());
+                return this.encodeAMRAsync(samples, getCtxSampleRate());
+            }).then((rawData) => {
+                this._rawData = rawData;
                 this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
                 this._isInit = true;
                 if (this._onFinishRecord) {
                     this._onFinishRecord();
                 }
                 resolve();
-            })
+            });
         });
     }
 
@@ -338,9 +359,36 @@ export default class BenzAMRRecorder {
         return this._blob;
     }
 
+    /*
     static encodeAMR(samples, sampleRate) {
         sampleRate = sampleRate || 8000;
         return AMR.encode(samples, sampleRate, 7);
+    }
+    */
+
+    encodeAMRAsync(samples, sampleRate) {
+        return new Promise(resolve => {
+            this._amrSeq ++;
+            this._amrResolves[this._amrSeq + ''] = resolve;
+            this._amrWorker.postMessage({
+                command: 'encode',
+                samples: samples,
+                sampleRate: sampleRate,
+                seq: this._amrSeq
+            });
+        });
+    }
+    
+    decodeAMRAsync(u8Array) {
+        return new Promise(resolve => {
+            this._amrSeq ++;
+            this._amrResolves[this._amrSeq + ''] = resolve;
+            this._amrWorker.postMessage({
+                command: 'decode',
+                buffer: u8Array,
+                seq: this._amrSeq
+            });
+        })
     }
 
     static rawAMRData2Blob(data) {
