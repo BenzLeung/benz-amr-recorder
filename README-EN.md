@@ -267,9 +267,9 @@ amr.getBlob();
 
 # Todo list
 
- - Encode & decode with WebWorker.
- - Pause function.
- - Playing progress and jump to a position.
+ - [x] Encode & decode with WebWorker.
+ - [ ] Pause function.
+ - [ ] Playing progress and jump to a position.
 
 # License
 
