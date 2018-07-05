@@ -584,7 +584,7 @@ var curSourceNode = null;
 if (AudioContext) {
     ctx = new AudioContext();
 } else {
-    throw 'Web Audio API is Unsupported.';
+    console.error(new Error('Web Audio API is Unsupported.'));
 }
 /*
 const increaseSampleRate = function (samples, multiple) {

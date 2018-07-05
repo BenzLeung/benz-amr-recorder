@@ -1,6 +1,6 @@
 {
   "name": "amr-recorder",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "amr 音频录制与播放（微信语音所用的格式）",
   "main": "BenzAMRRecorder.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build-worker": "uglifyjs \"./lib/amrnb.js\" \"./src/amrWorker.js\" -o \"./src/amrWorker.min.js\"",
-    "build-uglify": "uglifyjs \"./BenzAMRRecorder.js\" -o \"./BenzAMRRecorder.min.js\"",
+    "build-uglify": "uglifyjs \"./BenzAMRRecorder.js\" -o \"./BenzAMRRecorder.min.js\" --compress --mangle --mangle-props regex=\"/^_[^_]/\"",
     "build-browserify": "browserify \"./src/index.js\" -t [ babelify --presets [ env stage-0 ] --ignore amrnb ] -t workerify -s BenzAMRRecorder --debug | exorcist \"./BenzAMRRecorder.js.map\" > \"./BenzAMRRecorder.js\"",
     "build": "npm run build-worker && npm run build-browserify && npm run build-uglify"
   },
