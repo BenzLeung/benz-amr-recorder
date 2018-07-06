@@ -9,6 +9,7 @@
  */
 
 import Recorder from 'recorderjs';
+import remix from 'audio-buffer-remix';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
@@ -139,6 +140,10 @@ export const generateRecordSamples = function () {
 
 export const decodeAudioArrayBufferByContext = function (array) {
     return new Promise((resolve, reject) => {
-        ctx['decodeAudioData'](array, resolve, reject);
+        ctx['decodeAudioData'](array, (audioBuf) => {
+            // 把多声道音频 mix 成单声道
+            const oneChannel = remix(audioBuf, 1);
+            resolve(oneChannel['getChannelData'](0));
+        }, reject);
     });
 };

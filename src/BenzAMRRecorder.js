@@ -88,13 +88,13 @@ export default class BenzAMRRecorder {
                 if (!this._samples) {
                     decodeAudioArrayBufferByContext(array).then((data) => {
                         this._isInit = true;
-                        return this.encodeAMRAsync(new Float32Array(data), getCtxSampleRate());
-                    }).then((ramData) => {
-                        this._rawData = ramData;
-                        return this.decodeAMRAsync(ramData);
+                        return this.encodeAMRAsync(data, getCtxSampleRate());
+                    }).then((rawData) => {
+                        this._rawData = rawData;
+                        this._blob = BenzAMRRecorder.rawAMRData2Blob(rawData);
+                        return this.decodeAMRAsync(rawData);
                     }).then((sample) => {
                         this._samples = sample;
-                        this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
                         resolve();
                     }).catch(() => {
                         reject(new Error('Failed to decode.'));
