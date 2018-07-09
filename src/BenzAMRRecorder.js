@@ -253,7 +253,7 @@ export default class BenzAMRRecorder {
         this.on('cancelRecord', fn);
     }
 
-    _onEndCallback() {
+    _onEndCallback = () => {
         this._isPlaying = false;
         if (this._onStop) {
             this._onStop();
@@ -261,7 +261,7 @@ export default class BenzAMRRecorder {
         if (this._onEnded) {
             this._onEnded();
         }
-    }
+    };
 
     /**
      * 播放
