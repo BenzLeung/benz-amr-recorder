@@ -2489,6 +2489,10 @@ var BenzAMRRecorder = function () {
         this._amrResolves = {};
         this._amrSeq = 1;
 
+        this._playEmpty = function () {
+            (0, _audioContext.playPcm)(new Float32Array(10), 24000);
+        };
+
         this._onEndCallback = function () {
             _this._isPlaying = false;
             if (_this._onStop) {
@@ -2532,6 +2536,7 @@ var BenzAMRRecorder = function () {
             if (this._isInit || this._isInitRecorder) {
                 throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
             }
+            this._playEmpty();
             return new Promise(function (resolve, reject) {
                 var u8Array = new Uint8Array(array);
                 _this2.decodeAMRAsync(u8Array).then(function (samples) {
@@ -2574,6 +2579,7 @@ var BenzAMRRecorder = function () {
             if (this._isInit || this._isInitRecorder) {
                 throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
             }
+            this._playEmpty();
             this._blob = blob;
             var p = new Promise(function (resolve) {
                 var reader = new FileReader();
@@ -2601,12 +2607,7 @@ var BenzAMRRecorder = function () {
             if (this._isInit || this._isInitRecorder) {
                 throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
             }
-            // 先播放一个空音频，
-            // 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
-            // 播放空音频防止加载后立即播放的功能失效。
-            // 但即使如此，initWithUrl 仍然须放入一个用户事件中
-            (0, _audioContext.playPcm)(new Float32Array(10), 24000);
-
+            this._playEmpty();
             var p = new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
@@ -2637,6 +2638,7 @@ var BenzAMRRecorder = function () {
             if (this._isInit || this._isInitRecorder) {
                 throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
             }
+            this._playEmpty();
             return new Promise(function (resolve, reject) {
                 (0, _audioContext.initRecorder)().then(function () {
                     _this5._isInitRecorder = true;
@@ -2646,6 +2648,15 @@ var BenzAMRRecorder = function () {
                 });
             });
         }
+
+        /**
+         * init 之前先播放一个空音频。
+         * 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
+         * 播放空音频防止加载后立即播放的功能失效。
+         * 但即使如此，init* 仍然须放入一个用户事件中
+         * @private
+         */
+
     }, {
         key: 'on',
         value: function on(action, fn) {
