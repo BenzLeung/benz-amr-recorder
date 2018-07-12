@@ -55,11 +55,7 @@ export default class BenzAMRRecorder {
     _amrSeq = 1;
     
     constructor() {
-        this._amrWorker = new Worker(WORKER_PATH);
-        this._amrWorker.onmessage = (e) => {
-            this._amrResolves[e.data.seq + ''](e.data.amr);
-            delete this._amrResolves[e.data.seq + ''];
-        };
+
     }
 
     /**
@@ -375,28 +371,31 @@ export default class BenzAMRRecorder {
     }
     */
 
+    _runAMRWorker = (msg, resolve) => {
+        const amrWorker = new Worker(WORKER_PATH);
+        amrWorker.postMessage(msg);
+        amrWorker.onmessage = (e) => {
+            resolve(e.data.amr);
+            amrWorker.terminate();
+        };
+    };
+
     encodeAMRAsync(samples, sampleRate) {
         return new Promise(resolve => {
-            this._amrSeq ++;
-            this._amrResolves[this._amrSeq + ''] = resolve;
-            this._amrWorker.postMessage({
+            this._runAMRWorker({
                 command: 'encode',
                 samples: samples,
-                sampleRate: sampleRate,
-                seq: this._amrSeq
-            });
+                sampleRate: sampleRate
+            }, resolve);
         });
     }
     
     decodeAMRAsync(u8Array) {
         return new Promise(resolve => {
-            this._amrSeq ++;
-            this._amrResolves[this._amrSeq + ''] = resolve;
-            this._amrWorker.postMessage({
+            this._runAMRWorker({
                 command: 'decode',
-                buffer: u8Array,
-                seq: this._amrSeq
-            });
+                buffer: u8Array
+            }, resolve);
         })
     }
 

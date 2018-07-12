@@ -11,27 +11,25 @@
 self.onmessage = function (e) {
     switch(e.data.command){
         case 'encode':
-            encode(e.data.samples, e.data.sampleRate, e.data.seq);
+            encode(e.data.samples, e.data.sampleRate);
             break;
         case 'decode':
-            decode(e.data.buffer, e.data.seq);
+            decode(e.data.buffer);
             break;
     }
 };
 
-function encode(samples, sampleRate, seq) {
+function encode(samples, sampleRate) {
     sampleRate = sampleRate || 8000;
     self.postMessage({
         command: 'encode',
-        amr: AMR.encode(samples, sampleRate, 7),
-        seq: seq
+        amr: AMR.encode(samples, sampleRate, 7)
     });
 }
 
-function decode(u8Array, seq) {
+function decode(u8Array) {
     self.postMessage({
         command: 'decode',
-        amr: AMR.decode(u8Array),
-        seq: seq
+        amr: AMR.decode(u8Array)
     });
 }
