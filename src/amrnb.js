@@ -1,3 +1,6 @@
+module.exports = function() {
+
+
 var AMR = (function () {
     var AMR = {
         toWAV: (function (amr) {
@@ -24399,3 +24402,33 @@ var AMR = (function () {
 
     return AMR;
 })();
+
+
+
+
+self.onmessage = function (e) {
+    switch(e.data.command){
+        case 'encode':
+            encode(e.data.samples, e.data.sampleRate);
+            break;
+        case 'decode':
+            decode(e.data.buffer);
+            break;
+    }
+};
+
+function encode(samples, sampleRate) {
+    sampleRate = sampleRate || 8000;
+    self.postMessage({
+        command: 'encode',
+        amr: AMR.encode(samples, sampleRate, 7)
+    });
+}
+
+function decode(u8Array) {
+    self.postMessage({
+        command: 'decode',
+        amr: AMR.decode(u8Array)
+    });
+}
+};

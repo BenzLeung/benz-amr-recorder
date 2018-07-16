@@ -1,0 +1,13 @@
+{
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": ["> 5% in CN", "safari >= 11", "ie > 11"],
+        "uglify": true
+      },
+      "modules": false
+    }],
+    "stage-0"
+  ],
+  "plugins": ["external-helpers"]
+}

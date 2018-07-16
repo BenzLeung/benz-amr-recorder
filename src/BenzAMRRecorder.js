@@ -8,25 +8,21 @@
  * each engineer has a duty to keep the code elegant
  */
 
-import {
-    decodeAudioArrayBufferByContext,
-    generateRecordSamples,
-    getCtxSampleRate,
-    initRecorder,
-    isRecording,
-    playPcm,
-    startRecord,
-    stopPcm,
-    stopRecord
-} from "./audioContext";
+import RecorderControl from "./RecorderControl";
+import amrWorker from "./amrnb";
 
-const WORKER_PATH = './amrWorker.min.js';
+const amrWorkerStr = amrWorker.toString()
+    .replace(/^\s*function.*?\(\)\s*{/, '')
+    .replace(/}\s*$/, '');
+const amrWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blob([amrWorkerStr], {type:"text/javascript"}));
 
 export default class BenzAMRRecorder {
 
     _isInit = false;
 
     _isInitRecorder = false;
+
+    _recorderControl = null;
 
     _samples = new Float32Array(0);
 
@@ -48,14 +44,8 @@ export default class BenzAMRRecorder {
 
     _isPlaying = false;
     
-    _amrWorker;
-    
-    _amrResolves = {};
-    
-    _amrSeq = 1;
-    
     constructor() {
-
+        this._recorderControl = new RecorderControl();
     }
 
     /**
@@ -83,9 +73,9 @@ export default class BenzAMRRecorder {
                 this._isInit = true;
 
                 if (!this._samples) {
-                    decodeAudioArrayBufferByContext(array).then((data) => {
+                    RecorderControl.decodeAudioArrayBufferByContext(array).then((data) => {
                         this._isInit = true;
-                        return this.encodeAMRAsync(data, getCtxSampleRate());
+                        return this.encodeAMRAsync(data, RecorderControl.getCtxSampleRate());
                     }).then((rawData) => {
                         this._rawData = rawData;
                         this._blob = BenzAMRRecorder.rawAMRData2Blob(rawData);
@@ -164,7 +154,7 @@ export default class BenzAMRRecorder {
         }
         this._playEmpty();
         return new Promise((resolve, reject) => {
-            initRecorder().then(() => {
+            this._recorderControl.initRecorder().then(() => {
                 this._isInitRecorder = true;
                 resolve();
             }).catch((e) => {
@@ -181,7 +171,7 @@ export default class BenzAMRRecorder {
      * @private
      */
     _playEmpty = () => {
-        playPcm(new Float32Array(10), 24000);
+        this._recorderControl.playPcm(new Float32Array(10), 24000);
     };
 
     on(action, fn) {
@@ -279,14 +269,14 @@ export default class BenzAMRRecorder {
             this._onPlay();
         }
         this._isPlaying = true;
-        playPcm(this._samples, this._isInitRecorder ? getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
+        this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
     }
 
     /**
      * 停止
      */
     stop() {
-        stopPcm();
+        this._recorderControl.stopPcm();
         this._isPlaying = false;
         if (this._onStop) {
             this._onStop();
@@ -305,7 +295,7 @@ export default class BenzAMRRecorder {
      * 开始录音
      */
     startRecord() {
-        startRecord();
+        this._recorderControl.startRecord();
         if (this._onStartRecord) {
             this._onStartRecord();
         }
@@ -317,10 +307,10 @@ export default class BenzAMRRecorder {
      */
     finishRecord() {
         return new Promise((resolve) => {
-            stopRecord();
-            generateRecordSamples().then((samples) => {
+            this._recorderControl.stopRecord();
+            this._recorderControl.generateRecordSamples().then((samples) => {
                 this._samples = samples;
-                return this.encodeAMRAsync(samples, getCtxSampleRate());
+                return this.encodeAMRAsync(samples, RecorderControl.getCtxSampleRate());
             }).then((rawData) => {
                 this._rawData = rawData;
                 this._blob = BenzAMRRecorder.rawAMRData2Blob(this._rawData);
@@ -328,6 +318,7 @@ export default class BenzAMRRecorder {
                 if (this._onFinishRecord) {
                     this._onFinishRecord();
                 }
+                this._recorderControl.releaseRecord();
                 resolve();
             });
         });
@@ -337,7 +328,8 @@ export default class BenzAMRRecorder {
      * 放弃录音
      */
     cancelRecord() {
-        stopRecord();
+        this._recorderControl.stopRecord();
+        this._recorderControl.releaseRecord();
         if (this._onCancelRecord) {
             this._onCancelRecord();
         }
@@ -348,7 +340,7 @@ export default class BenzAMRRecorder {
      * @return {boolean}
      */
     isRecording() {
-        return isRecording();
+        return this._recorderControl.isRecording();
     }
 
     /**
@@ -356,7 +348,7 @@ export default class BenzAMRRecorder {
      * @return {Number}
      */
     getDuration() {
-        let rate = this._isInitRecorder ? getCtxSampleRate() : 8000;
+        let rate = this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000;
         return this._samples.length / rate;
     }
 
@@ -372,7 +364,7 @@ export default class BenzAMRRecorder {
     */
 
     _runAMRWorker = (msg, resolve) => {
-        const amrWorker = new Worker(WORKER_PATH);
+        const amrWorker = new Worker(amrWorkerURLObj);
         amrWorker.postMessage(msg);
         amrWorker.onmessage = (e) => {
             resolve(e.data.amr);
