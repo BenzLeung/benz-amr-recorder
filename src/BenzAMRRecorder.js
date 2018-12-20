@@ -249,9 +249,11 @@ export default class BenzAMRRecorder {
     }
 
     _onEndCallback = () => {
-        this._isPlaying = false;
-        if (this._onStop) {
-            this._onStop();
+        if (this._isPlaying) {
+            this._isPlaying = false;
+            if (this._onStop) {
+                this._onStop();
+            }
         }
         if (this._onEnded) {
             this._onEnded();

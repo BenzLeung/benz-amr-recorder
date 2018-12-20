@@ -24842,9 +24842,11 @@
 	        };
 
 	        this._onEndCallback = function () {
-	            _this._isPlaying = false;
-	            if (_this._onStop) {
-	                _this._onStop();
+	            if (_this._isPlaying) {
+	                _this._isPlaying = false;
+	                if (_this._onStop) {
+	                    _this._onStop();
+	                }
 	            }
 	            if (_this._onEnded) {
 	                _this._onEnded();
