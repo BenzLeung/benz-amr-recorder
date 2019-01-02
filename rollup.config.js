@@ -3,7 +3,7 @@ import resolve from "rollup-plugin-node-resolve";
 import babel from "rollup-plugin-babel";
 import cjs from "rollup-plugin-commonjs";
 import replace from 'rollup-plugin-re';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from "rollup-plugin-terser";
 
 export default [
     {
@@ -54,14 +54,16 @@ export default [
                     'eval(': '[eval][0]('
                 }
             }),
-            uglify({
+            terser({
                 compress: {},
                 mangle: {
+                    safari10: true,
                     properties: {
                         regex: /^_[^_]/
                     }
                 },
                 ie8: false,
+                safari10: true,
                 warnings: true
             })
         ],

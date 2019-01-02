@@ -45,7 +45,7 @@ amr.initWithUrl('path/to/voice.amr').then(function() {
   amr.play();
 });
 amr.onEnded(function() {
-  alert('播放完毕');
+  alert('play ended');
 })
 ```
 
@@ -85,7 +85,7 @@ Reformat MP3 to AMR (Need browser support MP3 format):
 ```javascript
 var amrFromMp3 = new BenzAMRRecorder();
 amrFromMp3.initWithUrl('path/to/file.mp3').then(function() {
-  // 下载 amr 文件
+  // Download the AMR file
   window.location.href = window.URL.createObjectURL(amrFromMp3.getBlob());
 })
 ```
@@ -147,7 +147,7 @@ amr.initWithRecord();
  * @param {Function} fn
  */
 amr.onPlay(function() {
-  console.log('开始播放');
+  console.log('play');
 });
 ```
 
@@ -157,7 +157,7 @@ amr.onPlay(function() {
  * @param {Function} fn
  */
 amr.onStop(function() {
-  console.log('停止播放');
+  console.log('stop playing');
 });
 ```
 
@@ -167,7 +167,7 @@ amr.onStop(function() {
  * @param {Function} fn
  */
 amr.onEnded(function() {
-  console.log('播放结束');
+  console.log('play ended');
 });
 ```
 
@@ -177,7 +177,7 @@ amr.onEnded(function() {
  * @param {Function} fn
  */
 amr.onStartRecord(function() {
-  console.log('开始录音');
+  console.log('start record');
 });
 ```
 
@@ -187,7 +187,7 @@ amr.onStartRecord(function() {
  * @param {Function} fn
  */
 amr.onFinishRecord(function() {
-  console.log('结束录音');
+  console.log('finish record');
 });
 ```
 

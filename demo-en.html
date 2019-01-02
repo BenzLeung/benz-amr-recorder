@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"/>
@@ -115,7 +115,7 @@
                 amrForRecorder.initWithRecord().then(() => {
                     amrForRecorder.startRecord();
                 }).catch(function(e) {
-                    alert(JSON.stringify(e));
+                    alert(e.message || e.name || JSON.stringify(e));
                 });
             }
         };
