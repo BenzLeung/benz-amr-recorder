@@ -173,6 +173,16 @@ amr.onEnded(function() {
 
 ```javascript
 /**
+ * 播放到结尾自动结束
+ * @param {Function} fn
+ */
+amr.onAutoEnded(function() {
+  console.log('播放自动结束');
+});
+```
+
+```javascript
+/**
  * 开始录音
  * @param {Function} fn
  */

@@ -62,18 +62,39 @@
                 playBtn.removeAttribute('disabled');
                 duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
             });
+
+            // Bind Events
+            amr.onPlay(function () {
+                console.log('Event: play');
+                playBtn.innerHTML = 'Stop';
+            });
+            amr.onStop(function () {
+                console.log('Event: stop');
+                playBtn.innerHTML = 'Play';
+            });
+            amr.onEnded(function () {
+                console.log('Event: ended');
+                playBtn.innerHTML = 'Play';
+            });
+            amr.onAutoEnded(function () {
+                console.log('Event: autoEnded');
+            });
+            amr.onStartRecord(function () {
+                console.log('Event: startRecord');
+            });
+            amr.onFinishRecord(function () {
+                console.log('Event: finishRecord');
+            });
+            amr.onCancelRecord(function () {
+                console.log('Event: cancelRecord');
+            });
         };
 
         playBtn.onclick = function () {
             if (amr.isPlaying()) {
                 amr.stop();
-                playBtn.innerHTML = 'Play';
             } else {
                 amr.play();
-                playBtn.innerHTML = 'Stop';
-                amr.onEnded(function () {
-                    playBtn.innerHTML = 'Play';
-                });
             }
         };
 
@@ -87,6 +108,32 @@
                 loadAmrFile.removeAttribute('disabled');
                 playBtn.removeAttribute('disabled');
                 duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
+            });
+
+            // Bind Events
+            amr.onPlay(function () {
+                console.log('Event: play');
+                playBtn.innerHTML = 'Stop';
+            });
+            amr.onStop(function () {
+                console.log('Event: stop');
+                playBtn.innerHTML = 'Play';
+            });
+            amr.onEnded(function () {
+                console.log('Event: ended');
+                playBtn.innerHTML = 'Play';
+            });
+            amr.onAutoEnded(function () {
+                console.log('Event: autoEnded');
+            });
+            amr.onStartRecord(function () {
+                console.log('Event: startRecord');
+            });
+            amr.onFinishRecord(function () {
+                console.log('Event: finishRecord');
+            });
+            amr.onCancelRecord(function () {
+                console.log('Event: cancelRecord');
             });
         };
 
@@ -117,19 +164,43 @@
                 }).catch(function(e) {
                     alert(e.message || e.name || JSON.stringify(e));
                 });
+
+                // 绑定事件
+                amrForRecorder.onPlay(function () {
+                    console.log('Recorder Event: play');
+                    playRecordBtn.innerHTML = 'Stop Playing';
+                });
+                amrForRecorder.onStop(function () {
+                    console.log('Recorder Event: stop');
+                    playRecordBtn.innerHTML = 'Play Record';
+                });
+                amrForRecorder.onEnded(function () {
+                    console.log('Recorder Event: ended');
+                    playRecordBtn.innerHTML = 'Play Record';
+                });
+                amrForRecorder.onAutoEnded(function () {
+                    console.log('Recorder Event: autoEnded');
+                });
+                amrForRecorder.onStartRecord(function () {
+                    console.log('Recorder Event: startRecord');
+                    recordBtn.innerHTML = 'Stop Record';
+                });
+                amrForRecorder.onFinishRecord(function () {
+                    console.log('Recorder Event: finishRecord');
+                    recordBtn.innerHTML = 'Start Record';
+                });
+                amrForRecorder.onCancelRecord(function () {
+                    console.log('Recorder Event: cancelRecord');
+                    recordBtn.innerHTML = 'Start Record';
+                });
             }
         };
 
         playRecordBtn.onclick = function () {
             if (amrForRecorder.isPlaying()) {
                 amrForRecorder.stop();
-                playRecordBtn.innerHTML = 'Play Record';
             } else {
                 amrForRecorder.play();
-                playRecordBtn.innerHTML = 'Stop Playing';
-                amrForRecorder.onEnded(function () {
-                    playRecordBtn.innerHTML = 'Play Record';
-                });
             }
         };
     })();

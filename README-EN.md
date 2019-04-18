@@ -173,6 +173,16 @@ amr.onEnded(function() {
 
 ```javascript
 /**
+ * on play to end and automatically ended
+ * @param {Function} fn
+ */
+amr.onAutoEnded(function() {
+  console.log('play automatically ended');
+});
+```
+
+```javascript
+/**
  * on start record
  * @param {Function} fn
  */

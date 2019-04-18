@@ -32,6 +32,8 @@ export default class BenzAMRRecorder {
 
     _onEnded = null;
 
+    _onAutoEnded = null;
+
     _onPlay = null;
 
     _onStop = null;
@@ -186,6 +188,9 @@ export default class BenzAMRRecorder {
                 case 'ended':
                     this._onEnded = fn;
                     break;
+                case 'autoEnded':
+                    this._onAutoEnded = fn;
+                    break;
                 case 'startRecord':
                     this._onStartRecord = fn;
                     break;
@@ -225,6 +230,14 @@ export default class BenzAMRRecorder {
     }
 
     /**
+     * 播放完毕自动结束事件
+     * @param {Function} fn
+     */
+    onAutoEnded(fn) {
+        this.on('autoEnded', fn);
+    }
+
+    /**
      * 开始录音事件
      * @param {Function} fn
      */
@@ -253,6 +266,9 @@ export default class BenzAMRRecorder {
             this._isPlaying = false;
             if (this._onStop) {
                 this._onStop();
+            }
+            if (this._onAutoEnded) {
+                this._onAutoEnded();
             }
         }
         if (this._onEnded) {
