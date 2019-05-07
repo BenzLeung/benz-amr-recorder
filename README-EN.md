@@ -287,6 +287,7 @@ amr.getBlob();
  - [x] ~~Encode & decode with WebWorker.~~
  - [ ] Pause function.
  - [ ] Playing progress and jump to a position.
+ - [ ] Browser compatibility check API ([#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)).
 
 # License
 

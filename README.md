@@ -287,6 +287,7 @@ amr.getBlob();
  - [x] ~~使用 Worker 编码解码 AMR。~~
  - [ ] 暂停功能。
  - [ ] 播放进度控制。
+ - [ ] 浏览器兼容性检查（[#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)）。
 
 # 许可
 
