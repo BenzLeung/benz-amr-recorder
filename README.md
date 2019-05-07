@@ -12,10 +12,17 @@
  - 支持 url 和 blob （即`<input type="file">`）方式获取 AMR。
  - 支持将浏览器 `<audio>` 所支持的音频格式（例如 MP3 或 OGG 音频）转换成 AMR 音频。
  - 编码后的 AMR 文件可下载，无须服务器。
- 
+
 ## Demo
 
 [demo.html](https://benzleung.github.io/benz-amr-recorder/demo.html)
+
+## 浏览器兼容性
+
+最新的浏览器兼容性请参阅 [Can I Use](https://caniuse.com/#feat=stream) 。
+
+ - 仅播放：[https://caniuse.com/#feat=audio-api](https://caniuse.com/#feat=audio-api)
+ - 播放+录音：[https://caniuse.com/#feat=stream](https://caniuse.com/#feat=stream)
 
 ## 安装
 

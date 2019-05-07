@@ -17,6 +17,13 @@ NOTE: Since amr.js is used for encoding and decoding, the js file is close to 50
 
 [demo-en.html](https://benzleung.github.io/benz-amr-recorder/demo-en.html)
 
+## Browser Compatibility
+
+For the latest browser compatibility, please refer to [Can I Use](https://caniuse.com/#feat=audio-api).
+
+  - Play only: [https://caniuse.com/#feat=audio-api](https://caniuse.com/#feat=audio-api)
+  - Play + Record: [https://caniuse.com/#feat=stream](https://caniuse.com/#feat=stream)
+
 ## Setup
 
 Load the JS file directly:
