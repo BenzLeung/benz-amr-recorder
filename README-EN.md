@@ -44,6 +44,11 @@ var BenzAMRRecorder = require('benz-amr-recorder');
 
 ## Usage
 
+**Note:** It is recommended to bind the `initWithXXX()` or `play()` methods to a user event (eg `click`, `touchstart`). Because almost all mobile devices (and the desktop version of Chrome 70+) prohibit JavaScript from playing audio automatically. reference:
+
+ - [https://webkit.org/blog/6784/new-video-policies-for-ios/](https://webkit.org/blog/6784/new-video-policies-for-ios/)
+ - [https://developers.google.com/web/updates/2017/09/autoplay-policy-changes](https://developers.google.com/web/updates/2017/09/autoplay-policy-changes)
+
 Play an AMR:
 
 ```javascript

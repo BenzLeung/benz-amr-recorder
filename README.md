@@ -44,6 +44,11 @@ var BenzAMRRecorder = require('benz-amr-recorder');
 
 ## 用法
 
+**注意：**建议把 `initWithXXX()` 或 `play()` 方法绑定到一个用户事件中（例如 `click`、`touchstart`）。因为几乎所有移动设备（以及桌面版 Chrome 70+）都禁止页面自动播放音频。参考：
+
+ - [https://webkit.org/blog/6784/new-video-policies-for-ios/](https://webkit.org/blog/6784/new-video-policies-for-ios/)
+ - [https://developers.google.com/web/updates/2017/09/autoplay-policy-changes](https://developers.google.com/web/updates/2017/09/autoplay-policy-changes)
+
 播放 AMR：
 
 ```javascript
