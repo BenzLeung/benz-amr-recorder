@@ -22,7 +22,7 @@ export default class BenzAMRRecorder {
 
     _isInitRecorder = false;
 
-    _recorderControl = null;
+    _recorderControl = new RecorderControl();
 
     _samples = new Float32Array(0);
 
@@ -47,7 +47,6 @@ export default class BenzAMRRecorder {
     _isPlaying = false;
     
     constructor() {
-        this._recorderControl = new RecorderControl();
     }
 
     /**

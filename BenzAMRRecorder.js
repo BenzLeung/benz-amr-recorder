@@ -366,7 +366,7 @@
         };
 
         if (!this._recorder) {
-          if (window.navigator.mediaDevices.getUserMedia) {
+          if (window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia) {
             window.navigator.mediaDevices.getUserMedia({
               audio: true
             }).then(s).catch(j);
@@ -24812,7 +24812,7 @@
 
       _defineProperty(this, "_isInitRecorder", false);
 
-      _defineProperty(this, "_recorderControl", null);
+      _defineProperty(this, "_recorderControl", new RecorderControl());
 
       _defineProperty(this, "_samples", new Float32Array(0));
 
@@ -24867,8 +24867,6 @@
           amrWorker.terminate();
         };
       });
-
-      this._recorderControl = new RecorderControl();
     }
     /**
      * 是否已经初始化

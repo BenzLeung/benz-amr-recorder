@@ -86,7 +86,7 @@ export default class RecorderControl {
                 reject(e);
             };
             if (!this._recorder) {
-                if (window.navigator.mediaDevices.getUserMedia) {
+                if (window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia) {
                     window.navigator.mediaDevices.getUserMedia({audio: true}).then(s).catch(j);
                 } else if (window.navigator.getUserMedia) {
                     window.navigator.getUserMedia({audio: true}, s, j);
