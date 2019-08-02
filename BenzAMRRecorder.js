@@ -977,10 +977,13 @@
 	            }
 	            return ret
 	        };
-	        var sourceRegex = /^function\s*\(([^)]*)\)\s*{\s*([^*]*?)[\s;]*(?:return\s*(.*?)[;\s]*)?}$/;
+	        var sourceRegex = /^function\s\(([^)]*)\)\s*{\s*([^*]*?)[\s;]*(?:return\s*(.*?)[;\s]*)?}$/;
 
 	        function parseJSFunc(jsfunc) {
-	            var parsed = jsfunc.toString().match(sourceRegex).slice(1);
+	            // Match the body and the return value of a javascript function source
+	            var parsed = jsfunc.toString().match(sourceRegex);
+	            if (!parsed) { return {}; }
+	            parsed = parsed.slice(1);
 	            return {arguments: parsed[0], body: parsed[1], returnValue: parsed[2]}
 	        }
 
