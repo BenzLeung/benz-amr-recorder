@@ -292,7 +292,7 @@
 	    this._curSourceNode = null;
 	  }
 
-	  playPcm(samples, sampleRate, onEnded) {
+	  playPcm(samples, sampleRate, onEnded,offset=0) {
 	    sampleRate = sampleRate || 8000;
 	    this.stopPcm();
 	    this._curSourceNode = ctx['createBufferSource']();
@@ -330,7 +330,7 @@
 
 	    this._curSourceNode.onended = onEnded;
 
-	    this._curSourceNode.start();
+	    this._curSourceNode.start(offset);
 	  }
 
 	  stopPcm() {
@@ -25101,7 +25101,7 @@
 	  /**
 	   * 播放
 	   */
-	  play() {
+	  play(offset=0) {
 	    if (!this._isInit) {
 	      throw new Error('Please init AMR first.');
 	    }
@@ -25112,8 +25112,33 @@
 
 	    this._isPlaying = true;
 
-	    this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
+	    this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this),offset);
 	  }
+		//播放控制 暂停
+		control_pause() {
+			ctx.suspend();
+		}
+		//播放控制 恢复
+		control_resume() {
+			ctx.resume();
+		}
+		//播放控制 停止播放
+		control_stop() {
+			this._recorderControl.stopPcm();
+		}
+		/**
+		 * 播放控制 按时间播放
+		 * @param {开始播放的秒数} start_sec 
+		 */
+		control_play(start_sec) {
+			if(this._recorderControl){
+				this.control_stop();
+			}
+			this.play(start_sec);
+		}
+
+
+
 	  /**
 	   * 停止
 	   */
