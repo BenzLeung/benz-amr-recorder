@@ -24875,7 +24875,7 @@
 
 	  initWithArrayBuffer(array) {
 	    if (this._isInit || this._isInitRecorder) {
-	      throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+	      BenzAMRRecorder.throwAlreadyInitialized();
 	    }
 
 	    this._playEmpty();
@@ -24916,7 +24916,7 @@
 
 	  initWithBlob(blob) {
 	    if (this._isInit || this._isInitRecorder) {
-	      throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+	      BenzAMRRecorder.throwAlreadyInitialized();
 	    }
 
 	    this._playEmpty();
@@ -24944,7 +24944,7 @@
 
 	  initWithUrl(url) {
 	    if (this._isInit || this._isInitRecorder) {
-	      throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+	      BenzAMRRecorder.throwAlreadyInitialized();
 	    }
 
 	    this._playEmpty();
@@ -24976,7 +24976,7 @@
 
 	  initWithRecord() {
 	    if (this._isInit || this._isInitRecorder) {
-	      throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+	      BenzAMRRecorder.throwAlreadyInitialized();
 	    }
 
 	    this._playEmpty();
@@ -25245,6 +25245,10 @@
 	    return new Blob([data.buffer], {
 	      type: 'audio/amr'
 	    });
+	  }
+
+	  static throwAlreadyInitialized() {
+	    throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
 	  }
 
 	}

@@ -64,7 +64,7 @@ export default class BenzAMRRecorder {
      */
     initWithArrayBuffer(array) {
         if (this._isInit || this._isInitRecorder) {
-            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+            BenzAMRRecorder.throwAlreadyInitialized();
         }
         this._playEmpty();
         return new Promise((resolve, reject) => {
@@ -102,7 +102,7 @@ export default class BenzAMRRecorder {
      */
     initWithBlob(blob) {
         if (this._isInit || this._isInitRecorder) {
-            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+            BenzAMRRecorder.throwAlreadyInitialized();
         }
         this._playEmpty();
         this._blob = blob;
@@ -125,7 +125,7 @@ export default class BenzAMRRecorder {
      */
     initWithUrl(url) {
         if (this._isInit || this._isInitRecorder) {
-            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+            BenzAMRRecorder.throwAlreadyInitialized();
         }
         this._playEmpty();
         const p = new Promise((resolve, reject) => {
@@ -151,7 +151,7 @@ export default class BenzAMRRecorder {
      */
     initWithRecord() {
         if (this._isInit || this._isInitRecorder) {
-            throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+            BenzAMRRecorder.throwAlreadyInitialized();
         }
         this._playEmpty();
         return new Promise((resolve, reject) => {
@@ -410,5 +410,23 @@ export default class BenzAMRRecorder {
 
     static rawAMRData2Blob(data) {
         return new Blob([data.buffer], {type: 'audio/amr'});
+    }
+
+    static throwAlreadyInitialized() {
+        throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+    }
+
+    /**
+     * 判断浏览器是否支持播放
+     */
+    static isPlaySupported() {
+        return RecorderControl.isPlaySupported();
+    }
+
+    /**
+     * 判断浏览器是否支持录音
+     */
+    static isRecordSupported() {
+        return RecorderControl.isRecordSupported();
     }
 }

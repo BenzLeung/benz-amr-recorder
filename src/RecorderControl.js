@@ -19,7 +19,7 @@ if (AudioContext) {
     ctx = new AudioContext();
 } else {
     isSupport = false;
-    console.error(new Error('Web Audio API is Unsupported.'));
+    console.warn('Web Audio API is Unsupported.');
 }
 
 export default class RecorderControl {
@@ -139,6 +139,14 @@ export default class RecorderControl {
             this._recorder.release();
             this._recorder = null;
         }
+    }
+
+    static isPlaySupported() {
+        return isSupport;
+    }
+
+    static isRecordSupported() {
+        return !!(window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia || window.navigator.getUserMedia);
     }
 
     static getCtxSampleRate() {
