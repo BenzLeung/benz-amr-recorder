@@ -276,11 +276,13 @@
 	 */
 	const AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 	let ctx = null;
+	let isSupport = true;
 
 	if (AudioContext) {
 	  ctx = new AudioContext();
 	} else {
-	  console.error(new Error('Web Audio API is Unsupported.'));
+	  isSupport = false;
+	  console.warn('Web Audio API is Unsupported.');
 	}
 
 	class RecorderControl {
@@ -292,26 +294,33 @@
 	    this._curSourceNode = null;
 	  }
 
-	  playPcm(samples, sampleRate, onEnded) {
+	  playPcm(samples, sampleRate, onEnded, startPos) {
 	    sampleRate = sampleRate || 8000;
 	    this.stopPcm();
-	    this._curSourceNode = ctx['createBufferSource']();
-	    let _samples = samples;
+
+	    let _samples = startPos && startPos > 0.001 ? // 根据开始位置（秒数）截取播放采样
+	    samples.slice(sampleRate * startPos) : samples;
+
+	    if (!_samples.length) {
+	      return onEnded();
+	    }
+
 	    let buffer, channelBuffer;
+	    this._curSourceNode = ctx['createBufferSource']();
 
 	    try {
-	      buffer = ctx['createBuffer'](1, samples.length, sampleRate);
+	      buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
 	    } catch (e) {
 	      // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
 	      if (sampleRate < 11025) {
-	        /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
-	        _samples = this._increaseSampleRate(samples, 3);*/
-	        buffer = ctx['createBuffer'](1, samples.length, sampleRate * 4);
+	        /*buffer = ctx['createBuffer'](1, _samples.length * 3, sampleRate * 3);
+	        _samples = this._increaseSampleRate(_samples, 3);*/
+	        buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 4);
 	        this._curSourceNode['playbackRate'].value = 0.25;
 	      } else {
-	        /*buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
-	        _samples = this._increaseSampleRate(samples, 2);*/
-	        buffer = ctx['createBuffer'](1, samples.length, sampleRate * 2);
+	        /*buffer = ctx['createBuffer'](1, _samples.length * 2, sampleRate * 2);
+	        _samples = this._increaseSampleRate(_samples, 2);*/
+	        buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 2);
 	        this._curSourceNode['playbackRate'].value = 0.5;
 	      }
 	    }
@@ -339,6 +348,11 @@
 
 	      this._curSourceNode = null;
 	    }
+	  }
+
+	  stopPcmSilently() {
+	    this._curSourceNode.onended = null;
+	    this.stopPcm();
 	  }
 
 	  initRecorder() {
@@ -421,8 +435,20 @@
 	    }
 	  }
 
+	  static isPlaySupported() {
+	    return isSupport;
+	  }
+
+	  static isRecordSupported() {
+	    return !!(window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia || window.navigator.getUserMedia);
+	  }
+
 	  static getCtxSampleRate() {
 	    return ctx.sampleRate;
+	  }
+
+	  static getCtxTime() {
+	    return ctx.currentTime;
 	  }
 
 	  static decodeAudioArrayBufferByContext(array) {
@@ -24819,11 +24845,16 @@
 	    this._onEnded = null;
 	    this._onAutoEnded = null;
 	    this._onPlay = null;
+	    this._onPause = null;
+	    this._onResume = null;
 	    this._onStop = null;
 	    this._onStartRecord = null;
 	    this._onCancelRecord = null;
 	    this._onFinishRecord = null;
 	    this._isPlaying = false;
+	    this._isPaused = false;
+	    this._startCtxTime = 0.0;
+	    this._pauseTime = 0.0;
 
 	    this._playEmpty = () => {
 	      this._recorderControl.playPcm(new Float32Array(10), 24000);
@@ -24842,8 +24873,10 @@
 	        }
 	      }
 
-	      if (this._onEnded) {
-	        this._onEnded();
+	      if (!this._isPaused) {
+	        if (this._onEnded) {
+	          this._onEnded();
+	        }
 	      }
 	    };
 
@@ -25010,6 +25043,14 @@
 	          this._onStop = fn;
 	          break;
 
+	        case 'pause':
+	          this._onPause = fn;
+	          break;
+
+	        case 'resume':
+	          this._onResume = fn;
+	          break;
+
 	        case 'ended':
 	          this._onEnded = fn;
 	          break;
@@ -25051,6 +25092,24 @@
 
 	  onStop(fn) {
 	    this.on('stop', fn);
+	  }
+	  /**
+	   * 暂停事件
+	   * @param {Function} fn
+	   */
+
+
+	  onPause(fn) {
+	    this.on('pause', fn);
+	  }
+	  /**
+	   * 继续播放事件
+	   * @param {Function} fn
+	   */
+
+
+	  onResume(fn) {
+	    this.on('resume', fn);
 	  }
 	  /**
 	   * 播放结束事件
@@ -25099,9 +25158,12 @@
 	  }
 
 	  /**
-	   * 播放
+	   * 播放（重新开始，无视暂停状态）
+	   * @param {Number|string?} startTime 可指定开始位置
 	   */
-	  play() {
+	  play(startTime) {
+	    const _startTime = startTime && startTime < this.getDuration() ? parseFloat(startTime) : 0;
+
 	    if (!this._isInit) {
 	      throw new Error('Please init AMR first.');
 	    }
@@ -25111,8 +25173,10 @@
 	    }
 
 	    this._isPlaying = true;
+	    this._isPaused = false;
+	    this._startCtxTime = RecorderControl.getCtxTime() - _startTime;
 
-	    this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
+	    this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this), _startTime);
 	  }
 	  /**
 	   * 停止
@@ -25123,10 +25187,127 @@
 	    this._recorderControl.stopPcm();
 
 	    this._isPlaying = false;
+	    this._isPaused = false;
 
 	    if (this._onStop) {
 	      this._onStop();
 	    }
+	  }
+	  /**
+	   * 暂停
+	   */
+
+
+	  pause() {
+	    if (!this._isPlaying) {
+	      return;
+	    }
+
+	    this._isPlaying = false;
+	    this._isPaused = true;
+	    this._pauseTime = RecorderControl.getCtxTime() - this._startCtxTime;
+
+	    this._recorderControl.stopPcm();
+
+	    if (this._onPause) {
+	      this._onPause();
+	    }
+	  }
+	  /**
+	   * 从暂停处继续
+	   */
+
+
+	  resume() {
+	    if (!this._isPaused) {
+	      return;
+	    }
+
+	    this._isPlaying = true;
+	    this._isPaused = false;
+	    this._startCtxTime = RecorderControl.getCtxTime() - this._pauseTime;
+
+	    this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this), this._pauseTime);
+
+	    if (this._onResume) {
+	      this._onResume();
+	    }
+	  }
+	  /**
+	   * 整合 play() 和 resume()，若在暂时状态则继续，否则从头播放
+	   */
+
+
+	  playOrResume() {
+	    if (this._isPaused) {
+	      this.resume();
+	    } else {
+	      this.play();
+	    }
+	  }
+	  /**
+	   * 整合 resume() 和 pause()
+	   */
+
+
+	  pauseOrResume() {
+	    if (this._isPaused) {
+	      this.resume();
+	    } else {
+	      this.pause();
+	    }
+	  }
+	  /**
+	   * 整合 play() 和 resume() 和 pause()
+	   */
+
+
+	  playOrPauseOrResume() {
+	    if (this._isPaused) {
+	      this.resume();
+	    } else if (this._isPlaying) {
+	      this.pause();
+	    } else {
+	      this.play();
+	    }
+	  }
+	  /**
+	   * 跳转到音频指定位置，不改变播放状态
+	   * @param {Number|string} time 指定位置（秒，浮点数）
+	   */
+
+
+	  setPosition(time) {
+	    const _time = parseFloat(time);
+
+	    if (_time > this.getDuration()) {
+	      this.stop();
+	    } else if (this._isPaused) {
+	      this._pauseTime = _time;
+	    } else if (this._isPlaying) {
+	      this._recorderControl.stopPcmSilently();
+
+	      this._startCtxTime = RecorderControl.getCtxTime() - _time;
+
+	      this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this), _time);
+	    } else {
+	      this.play(_time);
+	    }
+	  }
+	  /**
+	   * 获取当前播放位置（秒）
+	   * @return {Number} 位置，秒，浮点数
+	   */
+
+
+	  getCurrentPosition() {
+	    if (this._isPaused) {
+	      return this._pauseTime;
+	    } else if (this._isPlaying) {
+	      return RecorderControl.getCtxTime() - this._startCtxTime;
+	    }
+
+	    return 0;
 	  }
 	  /**
 	   * 是否正在播放
@@ -25136,6 +25317,15 @@
 
 	  isPlaying() {
 	    return this._isPlaying;
+	  }
+	  /**
+	   * 是否暂停中
+	   * @return {boolean}
+	   */
+
+
+	  isPaused() {
+	    return this._isPaused;
 	  }
 	  /**
 	   * 开始录音
@@ -25249,6 +25439,22 @@
 
 	  static throwAlreadyInitialized() {
 	    throw new Error('AMR has been initialized. For a new AMR, please generate a new BenzAMRRecorder().');
+	  }
+	  /**
+	   * 判断浏览器是否支持播放
+	   */
+
+
+	  static isPlaySupported() {
+	    return RecorderControl.isPlaySupported();
+	  }
+	  /**
+	   * 判断浏览器是否支持录音
+	   */
+
+
+	  static isRecordSupported() {
+	    return RecorderControl.isRecordSupported();
 	  }
 
 	}

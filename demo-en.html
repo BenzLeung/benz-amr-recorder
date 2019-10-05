@@ -20,7 +20,13 @@
     </p>
     <p>
         <button id="amr-play" disabled>Play</button>
-        <span id="amr-duration">0'</span>
+        <button id="amr-stop" disabled>Stop</button>
+        <input id="amr-progress" type="range" min="0" max="1" step="any" value="0" disabled>
+        <label for="amr-progress">
+            <span id="amr-cur">0'</span>
+            <span>/</span>
+            <span id="amr-duration">0'</span>
+        </label>
     </p>
 </div>
 <h2>Record & Encode</h2>
@@ -49,28 +55,56 @@
         var loadDemoBtn = E('#amr-load');
         var loadAmrFile = E('#amr-file');
         var playBtn = E('#amr-play');
+        var stopBtn = E('#amr-stop');
+        var progressCtrl = E('#amr-progress');
+        var isDragging = false;
+        var cur = E('#amr-cur');
         var duration = E('#amr-duration');
+
+        setInterval(function () {
+            if (amr) {
+                cur.innerHTML = amr.getCurrentPosition().toFixed(2) + '\'';
+                if (!isDragging) {
+                    progressCtrl.value = amr.getCurrentPosition().toFixed(2);
+                }
+            } else {
+                cur.innerHTML = '0\'';
+            }
+        }, 10);
 
         loadDemoBtn.onclick = function() {
             amr = new BenzAMRRecorder();
             loadDemoBtn.setAttribute('disabled', true);
             loadAmrFile.setAttribute('disabled', true);
             playBtn.setAttribute('disabled', true);
+            stopBtn.setAttribute('disabled', true);
+            progressCtrl.setAttribute('disabled', true);
             amr.initWithUrl('./res/mario.amr').then(function () {
                 loadDemoBtn.removeAttribute('disabled');
                 loadAmrFile.removeAttribute('disabled');
                 playBtn.removeAttribute('disabled');
+                stopBtn.removeAttribute('disabled');
+                progressCtrl.removeAttribute('disabled');
+                progressCtrl.setAttribute('max', amr.getDuration());
                 duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
             });
 
             // Bind Events
             amr.onPlay(function () {
                 console.log('Event: play');
-                playBtn.innerHTML = 'Stop';
+                playBtn.innerHTML = 'Pause';
             });
             amr.onStop(function () {
                 console.log('Event: stop');
                 playBtn.innerHTML = 'Play';
+            });
+            amr.onPause(function () {
+                console.log('Event: pause');
+                playBtn.innerHTML = 'Resume';
+            });
+            amr.onResume(function () {
+                console.log('Event: resume');
+                playBtn.innerHTML = 'Pause';
             });
             amr.onEnded(function () {
                 console.log('Event: ended');
@@ -91,11 +125,21 @@
         };
 
         playBtn.onclick = function () {
-            if (amr.isPlaying()) {
+            amr.playOrPauseOrResume();
+        };
+
+        stopBtn.onclick = function () {
                 amr.stop();
-            } else {
-                amr.play();
-            }
+        };
+
+        progressCtrl.onmousedown = function () {
+            isDragging = true;
+        };
+        progressCtrl.onmouseup = function () {
+            isDragging = false;
+        };
+        progressCtrl.onchange = function (e) {
+            amr.setPosition(e.target.value);
         };
 
         loadAmrFile.onchange = function() {

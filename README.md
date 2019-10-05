@@ -6,6 +6,8 @@
 
 注意：由于使用了 amr.js 做编码和解码，因此 js 文件（压缩后，未 gzip）接近 500 KB，使用前请考虑。
 
+**2019-10-05 更新 (v1.1.0)：**增加浏览器支持检测功能，增加暂停播放、设置播放进度功能。
+
 ## 特性
 
  - 方便的 API 实现解码、播放、录音、编码 AMR 文件。
@@ -171,6 +173,25 @@ amr.onPlay(function() {
 amr.onStop(function() {
   console.log('停止播放');
 });
+
+```javascript
+/**
+ * 暂停
+ * @param {Function} fn
+ */
+amr.onPause(function() {
+  console.log('暂停');
+});
+```
+
+```javascript
+/**
+ * （暂停状态中）继续播放
+ * @param {Function} fn
+ */
+amr.onResume(function() {
+  console.log('继续播放');
+});
 ```
 
 ```javascript
@@ -217,7 +238,8 @@ amr.onFinishRecord(function() {
 
 ```javascript
 /**
- * 播放
+ * 播放（无视暂停状态）
+ * @param {number?} startTime 可指定播放开始位置（秒，浮点数，可选）
  */
 amr.play();
 ```
@@ -231,10 +253,77 @@ amr.stop();
 
 ```javascript
 /**
+ * 暂停
+ * @since 1.1.0
+ */
+amr.pause();
+```
+
+```javascript
+/**
+ * 从暂停状态中继续播放
+ * @since 1.1.0
+ */
+amr.resume();
+```
+
+```javascript
+/**
+ * 整合 play() 和 resume()，若在暂停状态则继续，否则从头播放
+ * @since 1.1.0
+ */
+amr.playOrResume();
+```
+
+```javascript
+/**
+ * 整合 resume() 和 pause()，切换暂停状态
+ * @since 1.1.0
+ */
+amr.pauseOrResume();
+```
+
+```javascript
+/**
+ * 整合 play() 和 resume() 和 pause()
+ * @since 1.1.0
+ */
+amr.playOrPauseOrResume();
+```
+
+```javascript
+/**
+ * 跳转到音频指定位置，不改变播放状态（若停止状态则等同于 `play(time)`） 
+ * @since 1.1.0
+ * @param {Number} time 指定位置（秒，浮点数）
+ */
+amr.setPosition(12.34);
+```
+
+```javascript
+/**
+ * 获取当前播放位置（秒） 
+ * @since 1.1.0
+ * @return {Number} 位置，秒，浮点数
+ */
+amr.getCurrentPosition();
+```
+
+```javascript
+/**
  * 是否正在播放
  * @return {boolean}
  */
 amr.isPlaying();
+```
+
+```javascript
+/**
+ * 是否暂停中
+ * @since 1.1.0
+ * @return {boolean}
+ */
+amr.isPaused();
 ```
 
 #### 录音控制
@@ -287,12 +376,35 @@ amr.getDuration();
 amr.getBlob();
 ```
 
+```javascript
+/**
+ * 判断浏览器是否支持播放
+ * 注意这是静态(static)方法
+ * @since 1.1.0
+ * @return {boolean}
+ */
+BenzAMRRecorder.isPlaySupported();
+// 不是 amr.isPlaySupported();
+```
+
+```javascript
+/**
+ * 判断浏览器是否支持录音
+ * 注意这是静态(static)方法
+ * @since 1.1.0
+ * @return {boolean}
+ */
+BenzAMRRecorder.isRecordSupported();
+// 不是 amr.isRecordSupported();
+```
+
 # 尚未完成的特性
 
  - [x] ~~使用 Worker 编码解码 AMR。~~
- - [ ] 暂停功能。
- - [ ] 播放进度控制。
- - [ ] 浏览器兼容性检查（[#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)）。
+ - [x] ~~暂停播放功能。~~
+ - [ ] 暂停录音功能。
+ - [x] ~~播放进度控制。~~
+ - [x] ~~浏览器兼容性检查（[#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)）。~~
 
 # 许可
 

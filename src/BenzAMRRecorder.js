@@ -36,6 +36,10 @@ export default class BenzAMRRecorder {
 
     _onPlay = null;
 
+    _onPause = null;
+
+    _onResume = null;
+
     _onStop = null;
 
     _onStartRecord = null;
@@ -45,6 +49,12 @@ export default class BenzAMRRecorder {
     _onFinishRecord = null;
 
     _isPlaying = false;
+
+    _isPaused = false;
+
+    _startCtxTime = 0.0;
+
+    _pauseTime = 0.0;
     
     constructor() {
     }
@@ -184,6 +194,12 @@ export default class BenzAMRRecorder {
                 case 'stop':
                     this._onStop = fn;
                     break;
+                case 'pause':
+                    this._onPause = fn;
+                    break;
+                case 'resume':
+                    this._onResume = fn;
+                    break;
                 case 'ended':
                     this._onEnded = fn;
                     break;
@@ -218,6 +234,22 @@ export default class BenzAMRRecorder {
      */
     onStop(fn) {
         this.on('stop', fn);
+    }
+
+    /**
+     * 暂停事件
+     * @param {Function} fn
+     */
+    onPause(fn) {
+        this.on('pause', fn);
+    }
+
+    /**
+     * 继续播放事件
+     * @param {Function} fn
+     */
+    onResume(fn) {
+        this.on('resume', fn);
     }
 
     /**
@@ -270,15 +302,19 @@ export default class BenzAMRRecorder {
                 this._onAutoEnded();
             }
         }
-        if (this._onEnded) {
-            this._onEnded();
+        if (!this._isPaused) {
+            if (this._onEnded) {
+                this._onEnded();
+            }
         }
     };
 
     /**
-     * 播放
+     * 播放（重新开始，无视暂停状态）
+     * @param {number|string?} startTime 可指定开始位置
      */
-    play() {
+    play(startTime) {
+        const _startTime = (startTime && startTime < this.getDuration()) ? parseFloat(startTime) : 0;
         if (!this._isInit) {
             throw new Error('Please init AMR first.');
         }
@@ -286,7 +322,14 @@ export default class BenzAMRRecorder {
             this._onPlay();
         }
         this._isPlaying = true;
-        this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000, this._onEndCallback.bind(this));
+        this._isPaused = false;
+        this._startCtxTime = RecorderControl.getCtxTime() - _startTime;
+        this._recorderControl.playPcm(
+            this._samples,
+            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+            this._onEndCallback.bind(this),
+            _startTime
+        );
     }
 
     /**
@@ -295,9 +338,119 @@ export default class BenzAMRRecorder {
     stop() {
         this._recorderControl.stopPcm();
         this._isPlaying = false;
+        this._isPaused = false;
         if (this._onStop) {
             this._onStop();
         }
+    }
+
+    /**
+     * 暂停
+     */
+    pause() {
+        if (!this._isPlaying) {
+            return;
+        }
+        this._isPlaying = false;
+        this._isPaused = true;
+        this._pauseTime = RecorderControl.getCtxTime() - this._startCtxTime;
+        this._recorderControl.stopPcm();
+        if (this._onPause) {
+            this._onPause();
+        }
+    }
+
+    /**
+     * 从暂停处继续
+     */
+    resume() {
+        if (!this._isPaused) {
+            return;
+        }
+        this._isPlaying = true;
+        this._isPaused = false;
+        this._startCtxTime = RecorderControl.getCtxTime() - this._pauseTime;
+        this._recorderControl.playPcm(
+            this._samples,
+            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+            this._onEndCallback.bind(this),
+            this._pauseTime,
+        );
+        if (this._onResume) {
+            this._onResume();
+        }
+    }
+
+    /**
+     * 整合 play() 和 resume()，若在暂停状态则继续，否则从头播放
+     */
+    playOrResume() {
+        if (this._isPaused) {
+            this.resume();
+        } else {
+            this.play();
+        }
+    }
+
+    /**
+     * 整合 resume() 和 pause()
+     */
+    pauseOrResume() {
+        if (this._isPaused) {
+            this.resume();
+        } else {
+            this.pause();
+        }
+    }
+
+    /**
+     * 整合 play() 和 resume() 和 pause()
+     */
+    playOrPauseOrResume() {
+        if (this._isPaused) {
+            this.resume();
+        } else if (this._isPlaying) {
+            this.pause();
+        } else {
+            this.play();
+        }
+    }
+
+    /**
+     * 跳转到音频指定位置，不改变播放状态
+     * @param {Number|string} time 指定位置（秒，浮点数）
+     */
+    setPosition(time) {
+        const _time = parseFloat(time);
+        if (_time > this.getDuration()) {
+            this.stop();
+        } else if (this._isPaused) {
+            this._pauseTime = _time;
+        } else if (this._isPlaying) {
+            this._recorderControl.stopPcmSilently();
+            this._startCtxTime = RecorderControl.getCtxTime() - _time;
+            this._recorderControl.playPcm(
+                this._samples,
+                this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+                this._onEndCallback.bind(this),
+                _time,
+            );
+        } else {
+            this.play(_time);
+        }
+    }
+
+    /**
+     * 获取当前播放位置（秒）
+     * @return {Number} 位置，秒，浮点数
+     */
+    getCurrentPosition() {
+        if (this._isPaused) {
+            return this._pauseTime;
+        } else if (this._isPlaying) {
+            return RecorderControl.getCtxTime() - this._startCtxTime;
+        }
+        return 0;
     }
 
     /**
@@ -306,6 +459,14 @@ export default class BenzAMRRecorder {
      */
     isPlaying() {
         return this._isPlaying;
+    }
+
+    /**
+     * 是否暂停中
+     * @return {boolean}
+     */
+    isPaused() {
+        return this._isPaused;
     }
 
     /**
@@ -418,6 +579,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 判断浏览器是否支持播放
+     * @return {boolean}
      */
     static isPlaySupported() {
         return RecorderControl.isPlaySupported();
@@ -425,6 +587,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 判断浏览器是否支持录音
+     * @return {boolean}
      */
     static isRecordSupported() {
         return RecorderControl.isRecordSupported();

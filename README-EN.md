@@ -175,6 +175,26 @@ amr.onStop(function() {
 
 ```javascript
 /**
+ * On pause
+ * @param {Function} fn
+ */
+amr.onPause(function() {
+  console.log('pause');
+});
+```
+
+```javascript
+/**
+ * On resume (form the paused state)
+ * @param {Function} fn
+ */
+amr.onResume(function() {
+  console.log('resume');
+});
+```
+
+```javascript
+/**
  * on play ended
  * @param {Function} fn
  */
@@ -217,7 +237,8 @@ amr.onFinishRecord(function() {
 
 ```javascript
 /**
- * play
+ * play (ignore the paused state)
+ * @param {number?} startTime - specify the start position (in seconds, float number, optional)
  */
 amr.play();
 ```
@@ -231,10 +252,77 @@ amr.stop();
 
 ```javascript
 /**
+ * pause
+ * @since 1.1.0
+ */
+amr.pause();
+```
+
+```javascript
+/**
+ * resume from the paused state
+ * @since 1.1.0
+ */
+amr.resume();
+```
+
+```javascript
+/**
+ * Integrate `play()` and `resume()`, if it is paused, continue, otherwise play from the beginning
+ * @since 1.1.0
+ */
+amr.playOrResume();
+```
+
+```javascript
+/**
+ * Integrate `resume()` and `pause()` to toggle the pause state
+ * @since 1.1.0
+ */
+amr.pauseOrResume();
+```
+
+```javascript
+/**
+ * Integrate play() , resume() , and pause()
+ * @since 1.1.0
+ */
+amr.playOrPauseOrResume();
+```
+
+```javascript
+/**
+ * Jump to the specified position of the audio, it will not change the playback status (if it is stopped, it is equivalent to `play(time)`)
+ * @since 1.1.0
+ * @param {Number} time the specified position（in seconds, float number）
+ */
+amr.setPosition(12.34);
+```
+
+```javascript
+/**
+ * Get the current playback position (in seconds) 
+ * @since 1.1.0
+ * @return {Number} position, in seconds, float number
+ */
+amr.getCurrentPosition();
+```
+
+```javascript
+/**
  * If AMR was playing
  * @return {boolean}
  */
 amr.isPlaying();
+```
+
+```javascript
+/**
+ * If audio was paused
+ * @since 1.1.0
+ * @return {boolean}
+ */
+amr.isPaused();
 ```
 
 #### Recording controls
@@ -287,12 +375,35 @@ amr.getDuration();
 amr.getBlob();
 ```
 
+```javascript
+/**
+ * Determine if the browser supports playback
+ * Note that this is a static method
+ * @since 1.1.0
+ * @return {boolean}
+ */
+BenzAMRRecorder.isPlaySupported();
+// NOT `amr.isPlaySupported();`
+```
+
+```javascript
+/**
+ * Determine if the browser supports recording
+ * Note that this is a static method
+ * @since 1.1.0
+ * @return {boolean}
+ */
+BenzAMRRecorder.isRecordSupported();
+// NOT `amr.isRecordSupported();`
+```
+
 # Todo list
 
  - [x] ~~Encode & decode with WebWorker.~~
- - [ ] Pause function.
- - [ ] Playing progress and jump to a position.
- - [ ] Browser compatibility check API ([#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)).
+ - [x] ~~Pause playback.~~
+ - [ ] Pause recording.
+ - [x] ~~Playing progress and jump to a position.~~
+ - [x] ~~Browser compatibility check API ([#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)).~~
 
 # License
 

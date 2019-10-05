@@ -31,25 +31,31 @@ export default class RecorderControl {
 
     _curSourceNode = null;
 
-    playPcm (samples, sampleRate, onEnded) {
+    playPcm (samples, sampleRate, onEnded, startPos) {
         sampleRate = sampleRate || 8000;
         this.stopPcm();
-        this._curSourceNode = ctx['createBufferSource']();
-        let _samples = samples;
+        let _samples = (startPos && startPos > 0.001) ? (
+            // 根据开始位置（秒数）截取播放采样
+            samples.slice(sampleRate * startPos)
+        ) : samples;
+        if (!_samples.length) {
+            return onEnded();
+        }
         let buffer, channelBuffer;
+        this._curSourceNode = ctx['createBufferSource']();
         try {
-            buffer = ctx['createBuffer'](1, samples.length, sampleRate);
+            buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
         } catch (e) {
             // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
             if (sampleRate < 11025) {
-                /*buffer = ctx['createBuffer'](1, samples.length * 3, sampleRate * 3);
-                _samples = this._increaseSampleRate(samples, 3);*/
-                buffer = ctx['createBuffer'](1, samples.length, sampleRate * 4);
+                /*buffer = ctx['createBuffer'](1, _samples.length * 3, sampleRate * 3);
+                _samples = this._increaseSampleRate(_samples, 3);*/
+                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 4);
                 this._curSourceNode['playbackRate'].value = 0.25;
             } else {
-                /*buffer = ctx['createBuffer'](1, samples.length * 2, sampleRate * 2);
-                _samples = this._increaseSampleRate(samples, 2);*/
-                buffer = ctx['createBuffer'](1, samples.length, sampleRate * 2);
+                /*buffer = ctx['createBuffer'](1, _samples.length * 2, sampleRate * 2);
+                _samples = this._increaseSampleRate(_samples, 2);*/
+                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 2);
                 this._curSourceNode['playbackRate'].value = 0.5;
             }
         }
@@ -71,6 +77,11 @@ export default class RecorderControl {
             this._curSourceNode.stop();
             this._curSourceNode = null;
         }
+    }
+
+    stopPcmSilently() {
+        this._curSourceNode.onended = null;
+        this.stopPcm();
     }
 
     initRecorder() {
@@ -151,6 +162,10 @@ export default class RecorderControl {
 
     static getCtxSampleRate() {
         return ctx.sampleRate;
+    }
+
+    static getCtxTime() {
+        return ctx.currentTime;
     }
 
     static decodeAudioArrayBufferByContext(array) {
