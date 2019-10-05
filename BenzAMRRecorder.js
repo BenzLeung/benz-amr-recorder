@@ -25159,7 +25159,7 @@
 
 	  /**
 	   * 播放（重新开始，无视暂停状态）
-	   * @param {Number|string?} startTime 可指定开始位置
+	   * @param {number|string?} startTime 可指定开始位置
 	   */
 	  play(startTime) {
 	    const _startTime = startTime && startTime < this.getDuration() ? parseFloat(startTime) : 0;
@@ -25234,7 +25234,7 @@
 	    }
 	  }
 	  /**
-	   * 整合 play() 和 resume()，若在暂时状态则继续，否则从头播放
+	   * 整合 play() 和 resume()，若在暂停状态则继续，否则从头播放
 	   */
 
 
@@ -25442,6 +25442,7 @@
 	  }
 	  /**
 	   * 判断浏览器是否支持播放
+	   * @return {boolean}
 	   */
 
 
@@ -25450,6 +25451,7 @@
 	  }
 	  /**
 	   * 判断浏览器是否支持录音
+	   * @return {boolean}
 	   */
 
 
