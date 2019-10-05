@@ -173,6 +173,7 @@ amr.onPlay(function() {
 amr.onStop(function() {
   console.log('停止播放');
 });
+```
 
 ```javascript
 /**
