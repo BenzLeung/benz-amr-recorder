@@ -2,7 +2,7 @@
   "presets": [
     ["@babel/preset-env", {
       "targets": {
-        "browsers": ["> 5% in CN", "safari >= 11", "ie > 11"]
+        "browsers": ["> 5% in CN", "safari >= 9", "iOS >= 9", "not IE > 0"]
       },
       "modules": false
     }]
