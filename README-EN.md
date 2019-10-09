@@ -399,11 +399,11 @@ BenzAMRRecorder.isRecordSupported();
 
 # Todo list
 
- - [x] ~~Encode & decode with WebWorker.~~
- - [x] ~~Pause playback.~~
+ - [x] ~~Encode & decode with WebWorker.~~（v1.0.9）
+ - [x] ~~Pause playback.~~（v1.1.0）
  - [ ] Pause recording.
- - [x] ~~Playing progress and jump to a position.~~
- - [x] ~~Browser compatibility check API ([#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)).~~
+ - [x] ~~Playing progress and jump to a position.~~（v1.1.0）
+ - [x] ~~Browser compatibility check API ([#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)).~~（v1.1.0）
 
 # License
 

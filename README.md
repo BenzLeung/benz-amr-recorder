@@ -401,11 +401,11 @@ BenzAMRRecorder.isRecordSupported();
 
 # 尚未完成的特性
 
- - [x] ~~使用 Worker 编码解码 AMR。~~
- - [x] ~~暂停播放功能。~~
+ - [x] ~~使用 Worker 编码解码 AMR。~~（v1.0.9）
+ - [x] ~~暂停播放功能。~~（v1.1.0）
  - [ ] 暂停录音功能。
- - [x] ~~播放进度控制。~~
- - [x] ~~浏览器兼容性检查（[#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)）。~~
+ - [x] ~~播放进度控制。~~（v1.1.0）
+ - [x] ~~浏览器兼容性检查（[#9](https://github.com/BenzLeung/benz-amr-recorder/issues/9) [#11](https://github.com/BenzLeung/benz-amr-recorder/issues/11)）。~~（v1.1.0）
 
 # 许可
 
