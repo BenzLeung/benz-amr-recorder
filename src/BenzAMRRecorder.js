@@ -418,7 +418,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 跳转到音频指定位置，不改变播放状态
-     * @param {Number|string} time 指定位置（秒，浮点数）
+     * @param {number|string} time 指定位置（秒，浮点数）
      */
     setPosition(time) {
         const _time = parseFloat(time);
@@ -523,7 +523,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 获取音频的时间长度（单位：秒）
-     * @return {Number}
+     * @return {number}
      */
     getDuration() {
         let rate = this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000;
