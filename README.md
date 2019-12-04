@@ -1,6 +1,11 @@
-# AMR 录音机
+# AMR 录音机 [![GitHub stars](https://img.shields.io/github/stars/BenzLeung/benz-amr-recorder.svg?style=social&label=Star&maxAge=2592000)](https://gitHub.com/BenzLeung/benz-amr-recorder/)
 
 ([README in English](./README-EN.md))
+
+[![npm](https://img.shields.io/npm/v/benz-amr-recorder.svg)](https://www.npmjs.com/package/benz-amr-recorder)
+[![npm](https://img.shields.io/npm/dt/benz-amr-recorder.svg)](https://www.npmjs.com/package/benz-amr-recorder)
+[![size](https://img.shields.io/github/size/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)](https://gitHub.com/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)
+[![gzip size](http://img.badgesize.io/https://npmcdn.com/benz-amr-recorder/BenzAMRRecorder.min.js?compression=gzip)](https://gitHub.com/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)
 
 纯前端解码、播放、录音、编码 AMR 音频，无须服务器支持，基于 [amr.js](https://github.com/jpemartins/amr.js) 和 [RecorderJs](https://github.com/jergason/Recorderjs)。
 
@@ -35,6 +40,8 @@
 ```
 
 方法二：使用 npm
+
+[![NPM](https://nodei.co/npm/benz-amr-recorder.png)](https://www.npmjs.com/package/benz-amr-recorder)
 
 ```
 npm install benz-amr-recorder
