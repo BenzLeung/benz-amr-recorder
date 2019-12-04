@@ -1,5 +1,10 @@
 # AMR Recorder
 
+[![npm](https://img.shields.io/npm/v/benz-amr-recorder.svg)](https://www.npmjs.com/package/benz-amr-recorder)
+[![npm](https://img.shields.io/npm/dt/benz-amr-recorder.svg)](https://www.npmjs.com/package/benz-amr-recorder)
+[![size](https://img.shields.io/github/size/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)](https://gitHub.com/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)
+[![gzip size](http://img.badgesize.io/https://npmcdn.com/benz-amr-recorder/BenzAMRRecorder.min.js?compression=gzip)](https://gitHub.com/BenzLeung/benz-amr-recorder/BenzAMRRecorder.min.js)
+
 Play, record, reformat AMR audio, in pure Javascript, without any server.
 
 This project is based on [amr.js](https://github.com/jpemartins/amr.js) and [RecorderJs](https://github.com/jergason/Recorderjs).
@@ -33,6 +38,8 @@ Load the JS file directly:
 ```
 
 OR use npm:
+
+[![NPM](https://nodei.co/npm/benz-amr-recorder.png)](https://www.npmjs.com/package/benz-amr-recorder)
 
 ```
 npm install benz-amr-recorder
