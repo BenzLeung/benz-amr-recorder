@@ -314,6 +314,10 @@
     _createClass(RecorderControl, [{
       key: "playPcm",
       value: function playPcm(samples, sampleRate, onEnded, startPos) {
+        if (ctx.state === 'interrupted') {
+          ctx.resume();
+        }
+
         sampleRate = sampleRate || 8000;
         this.stopPcm();
 
@@ -25348,7 +25352,7 @@
       }
       /**
        * 跳转到音频指定位置，不改变播放状态
-       * @param {Number|string} time 指定位置（秒，浮点数）
+       * @param {number|string} time 指定位置（秒，浮点数）
        */
 
     }, {
@@ -25477,7 +25481,7 @@
       }
       /**
        * 获取音频的时间长度（单位：秒）
-       * @return {Number}
+       * @return {number}
        */
 
     }, {
