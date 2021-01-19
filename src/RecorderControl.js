@@ -32,6 +32,10 @@ export default class RecorderControl {
     _curSourceNode = null;
 
     playPcm (samples, sampleRate, onEnded, startPos) {
+        if (ctx.state === 'interrupted') {
+            ctx.resume();
+        }
+
         sampleRate = sampleRate || 8000;
         this.stopPcm();
         let _samples = (startPos && startPos > 0.001) ? (
