@@ -291,9 +291,7 @@
   var ctx = null;
   var isSupport = true;
 
-  if (AudioContext) {
-    ctx = new AudioContext();
-  } else {
+  if (!AudioContext) {
     isSupport = false;
     console.warn('Web Audio API is Unsupported.');
   }
@@ -314,7 +312,11 @@
     _createClass(RecorderControl, [{
       key: "playPcm",
       value: function playPcm(samples, sampleRate, onEnded, startPos) {
-        if (ctx.state === 'interrupted') {
+        if (!ctx || ctx.state === 'closed') {
+          ctx = new AudioContext();
+        }
+
+        if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
           ctx.resume();
         }
 
@@ -482,12 +484,12 @@
     }, {
       key: "getCtxSampleRate",
       value: function getCtxSampleRate() {
-        return ctx.sampleRate;
+        return ctx && ctx.sampleRate || 0;
       }
     }, {
       key: "getCtxTime",
       value: function getCtxTime() {
-        return ctx.currentTime;
+        return ctx && ctx.currentTime || 0;
       }
     }, {
       key: "decodeAudioArrayBufferByContext",
