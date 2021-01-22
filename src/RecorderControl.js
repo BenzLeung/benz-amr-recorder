@@ -15,9 +15,7 @@ const AudioContext = window.AudioContext || window.webkitAudioContext || window.
 let ctx = null;
 let isSupport = true;
 
-if (AudioContext) {
-    ctx = new AudioContext();
-} else {
+if (!AudioContext) {
     isSupport = false;
     console.warn('Web Audio API is Unsupported.');
 }
@@ -32,7 +30,10 @@ export default class RecorderControl {
     _curSourceNode = null;
 
     playPcm (samples, sampleRate, onEnded, startPos) {
-        if (ctx.state === 'interrupted') {
+        if (!ctx || ctx.state === 'closed') {
+            ctx = new AudioContext();
+        }
+        if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
             ctx.resume();
         }
 
@@ -165,11 +166,11 @@ export default class RecorderControl {
     }
 
     static getCtxSampleRate() {
-        return ctx.sampleRate;
+        return ctx && ctx.sampleRate || 0;
     }
 
     static getCtxTime() {
-        return ctx.currentTime;
+        return ctx && ctx.currentTime || 0;
     }
 
     static decodeAudioArrayBufferByContext(array) {
