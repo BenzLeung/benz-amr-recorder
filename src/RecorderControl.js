@@ -220,17 +220,4 @@ export default class RecorderControl {
             }, reject);
         });
     }
-
-    /*
-    static _increaseSampleRate(samples, multiple) {
-        let sampleLen = samples.length;
-        let newSamples = new Float32Array(sampleLen * multiple);
-        for (let i = 0; i < sampleLen; i ++) {
-            for (let j = 0; j < multiple; j ++) {
-                newSamples[i * multiple + j] = samples[i];
-            }
-        }
-        return newSamples;
-    };
-    */
 }

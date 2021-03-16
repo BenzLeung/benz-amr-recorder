@@ -9,14 +9,21 @@
  */
 
 import RecorderControl from "./RecorderControl";
-import amrWorker from "./amrnb";
+import amrNbWorker from "./amrnb";
+import amrWbWorker from "./amrwb";
 
-const amrWorkerStr = amrWorker.toString()
+const amrNbWorkerStr = amrNbWorker.toString()
     .replace(/^\s*function.*?\(\)\s*{/, '')
     .replace(/}\s*$/, '');
-const amrWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blob([amrWorkerStr], {type:"text/javascript"}));
+const amrNbWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blob([amrNbWorkerStr], {type:"text/javascript"}));
+
+const amrWbWorkerStr = amrWbWorker.toString()
+    .replace(/^\s*function.*?\(\)\s*{/, '')
+    .replace(/}\s*$/, '');
+const amrWbWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blob([amrWbWorkerStr], {type:"text/javascript"}));
 
 export default class BenzAMRRecorder {
+    _sampleRate = 8000;
 
     _isInit = false;
 
@@ -55,7 +62,7 @@ export default class BenzAMRRecorder {
     _startCtxTime = 0.0;
 
     _pauseTime = 0.0;
-    
+
     constructor() {
     }
 
@@ -79,7 +86,19 @@ export default class BenzAMRRecorder {
         this._playEmpty();
         return new Promise((resolve, reject) => {
             let u8Array = new Uint8Array(array);
-            this.decodeAMRAsync(u8Array).then((samples) => {
+            let AMR_NB_HEADER = '#!AMR\n';
+            let AMR_WB_HEADER = '#!AMR-WB\n';
+            let is_AMR_NB = false;
+            let is_AMR_WB = false;
+
+            if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_NB_HEADER.length)) == AMR_NB_HEADER) {
+                is_AMR_NB = true;
+            } else if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_WB_HEADER.length)) == AMR_WB_HEADER) {
+                is_AMR_WB = true;
+                this._sampleRate = 16000;
+            }
+
+            this.decodeAMRAsync(u8Array, is_AMR_WB).then((samples) => {
                 this._samples = samples;
                 this._isInit = true;
 
@@ -326,7 +345,7 @@ export default class BenzAMRRecorder {
         this._startCtxTime = RecorderControl.getCtxTime() - _startTime;
         this._recorderControl.playPcm(
             this._samples,
-            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
             this._onEndCallback.bind(this),
             _startTime
         );
@@ -372,7 +391,7 @@ export default class BenzAMRRecorder {
         this._startCtxTime = RecorderControl.getCtxTime() - this._pauseTime;
         this._recorderControl.playPcm(
             this._samples,
-            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+            this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
             this._onEndCallback.bind(this),
             this._pauseTime,
         );
@@ -431,7 +450,7 @@ export default class BenzAMRRecorder {
             this._startCtxTime = RecorderControl.getCtxTime() - _time;
             this._recorderControl.playPcm(
                 this._samples,
-                this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000,
+                this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
                 this._onEndCallback.bind(this),
                 _time,
             );
@@ -526,7 +545,7 @@ export default class BenzAMRRecorder {
      * @return {number}
      */
     getDuration() {
-        let rate = this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000;
+        let rate = this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate;
         return this._samples.length / rate;
     }
 
@@ -534,19 +553,12 @@ export default class BenzAMRRecorder {
         return this._blob;
     }
 
-    /*
-    static encodeAMR(samples, sampleRate) {
-        sampleRate = sampleRate || 8000;
-        return AMR.encode(samples, sampleRate, 7);
-    }
-    */
-
-    _runAMRWorker = (msg, resolve) => {
-        const amrWorker = new Worker(amrWorkerURLObj);
-        amrWorker.postMessage(msg);
-        amrWorker.onmessage = (e) => {
+    _runAMRWorker = (msg, resolve, isAmrWb) => {
+        const amrNbWorker = new Worker(!isAmrWb ? amrNbWorkerURLObj : amrWbWorkerURLObj);
+        amrNbWorker.postMessage(msg);
+        amrNbWorker.onmessage = (e) => {
             resolve(e.data.amr);
-            amrWorker.terminate();
+            amrNbWorker.terminate();
         };
     };
 
@@ -559,13 +571,13 @@ export default class BenzAMRRecorder {
             }, resolve);
         });
     }
-    
-    decodeAMRAsync(u8Array) {
+
+    decodeAMRAsync(u8Array, isAmrWb) {
         return new Promise(resolve => {
             this._runAMRWorker({
                 command: 'decode',
                 buffer: u8Array
-            }, resolve);
+            }, resolve, isAmrWb);
         })
     }
 
