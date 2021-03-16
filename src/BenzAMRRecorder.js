@@ -239,6 +239,13 @@ export default class BenzAMRRecorder {
         }
     }
 
+    set playbackRate (val) {
+        this._recorderControl.playbackRate = val;
+    }
+    get playbackRate () {
+        return this._recorderControl.playbackRate;
+    }
+
     /**
      * 播放事件
      * @param {Function} fn

@@ -21,7 +21,7 @@ if (!AudioContext) {
 }
 
 export default class RecorderControl {
-
+    _playbackRate = 1;
     _recorderStream = null;
     _recorderStreamSourceNode = null;
     _recorder = null;
@@ -48,22 +48,10 @@ export default class RecorderControl {
         }
         let buffer, channelBuffer;
         this._curSourceNode = ctx['createBufferSource']();
-        try {
-            buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
-        } catch (e) {
-            // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
-            if (sampleRate < 11025) {
-                /*buffer = ctx['createBuffer'](1, _samples.length * 3, sampleRate * 3);
-                _samples = this._increaseSampleRate(_samples, 3);*/
-                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 4);
-                this._curSourceNode['playbackRate'].value = 0.25;
-            } else {
-                /*buffer = ctx['createBuffer'](1, _samples.length * 2, sampleRate * 2);
-                _samples = this._increaseSampleRate(_samples, 2);*/
-                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 2);
-                this._curSourceNode['playbackRate'].value = 0.5;
-            }
-        }
+        this._curSourceNode['playbackRate'].value = this._playbackRate;
+
+        buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
+
         if (buffer['copyToChannel']) {
             buffer['copyToChannel'](_samples, 0, 0)
         } else {
@@ -75,6 +63,17 @@ export default class RecorderControl {
         this._curSourceNode['connect'](ctx['destination']);
         this._curSourceNode.onended = onEnded;
         this._curSourceNode.start();
+    }
+
+    set playbackRate (val) {
+        let value = Number(val) || 1;
+        if (this._curSourceNode) {
+            this._curSourceNode['playbackRate'].value = value;
+        }
+        this._playbackRate = value;
+    }
+    get playbackRate () {
+        return this._playbackRate;
     }
 
     stopPcm() {

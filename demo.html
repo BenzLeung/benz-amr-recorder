@@ -152,6 +152,8 @@
                 loadAmrFile.removeAttribute('disabled');
                 playBtn.removeAttribute('disabled');
                 duration.innerHTML = amr.getDuration().toFixed(2) + '\'';
+                progressCtrl.removeAttribute('disabled');
+                progressCtrl.setAttribute('max', amr.getDuration());
             });
 
             // 绑定事件
