@@ -66,7 +66,9 @@ export default class RecorderControl {
     }
 
     set playbackRate (val) {
-        let value = Number(val) || 1;
+        // 测试说速度比较快？做下均衡
+        let value = ((Number(val) || 1) + 1) / 2;
+
         if (this._curSourceNode) {
             this._curSourceNode['playbackRate'].value = value;
         }
