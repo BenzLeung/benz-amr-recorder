@@ -37600,8 +37600,6 @@
       this._onEndCallback = function () {
         if (_this._isPlaying) {
           _this._isPlaying = false;
-          _this._isPaused = true;
-          _this._pauseTime = 0.0;
 
           if (_this._onStop) {
             _this._onStop();
@@ -37613,6 +37611,9 @@
         }
 
         if (!_this._isPaused) {
+          _this._isPaused = true;
+          _this._pauseTime = 0.0;
+
           if (_this._onEnded) {
             _this._onEnded();
           }
