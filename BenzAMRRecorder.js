@@ -37587,7 +37587,7 @@
       this._onCancelRecord = null;
       this._onFinishRecord = null;
       this._isPlaying = false;
-      this._isPaused = false;
+      this._isPaused = true;
       this._startCtxTime = 0.0;
       this._pauseTime = 0.0;
 
@@ -37600,6 +37600,8 @@
       this._onEndCallback = function () {
         if (_this._isPlaying) {
           _this._isPlaying = false;
+          _this._isPaused = true;
+          _this._pauseTime = 0.0;
 
           if (_this._onStop) {
             _this._onStop();
@@ -37977,7 +37979,8 @@
         this._recorderControl.stopPcm();
 
         this._isPlaying = false;
-        this._isPaused = false;
+        this._isPaused = true;
+        this._pauseTime = 0.0;
 
         if (this._onStop) {
           this._onStop();

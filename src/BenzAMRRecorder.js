@@ -59,7 +59,7 @@ export default class BenzAMRRecorder {
 
     _isPlaying = false;
 
-    _isPaused = false;
+    _isPaused = true;
 
     _startCtxTime = 0.0;
 
@@ -341,6 +341,8 @@ export default class BenzAMRRecorder {
     _onEndCallback = () => {
         if (this._isPlaying) {
             this._isPlaying = false;
+            this._isPaused = true;
+            this._pauseTime = 0.0;
             if (this._onStop) {
                 this._onStop();
             }
@@ -385,7 +387,8 @@ export default class BenzAMRRecorder {
     stop() {
         this._recorderControl.stopPcm();
         this._isPlaying = false;
-        this._isPaused = false;
+        this._isPaused = true;
+        this._pauseTime = 0.0;
         if (this._onStop) {
             this._onStop();
         }
