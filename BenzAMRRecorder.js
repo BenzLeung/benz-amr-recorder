@@ -319,16 +319,22 @@
 
     _createClass(RecorderControl, [{
       key: "playPcm",
-      value: function playPcm(samples, sampleRate, onEnded, startPos) {
-        if (!ctx || ctx.state === 'closed') {
-          ctx = new AudioContext();
+      value: function playPcm(samples) {
+        var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 16000;
+        var onEnded = arguments.length > 2 ? arguments[2] : undefined;
+        var startPos = arguments.length > 3 ? arguments[3] : undefined;
+
+        if (!ctx || ctx.state === 'closed' || ctx.sampleRate !== sampleRate) {
+          ctx && ctx.close();
+          ctx = new AudioContext({
+            sampleRate
+          });
         }
 
         if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
           ctx.resume();
         }
 
-        sampleRate = sampleRate || 8000;
         this.stopPcm();
 
         var _samples = startPos && startPos > 0.001 ? // 根据开始位置（秒数）截取播放采样
@@ -468,7 +474,8 @@
       key: "playbackRate",
       set: function set(val) {
         // 测试说速度比较快？做下均衡
-        var value = ((Number(val) || 1) + 1) / 2;
+        // let value = ((Number(val) || 1) + 1) / 2;
+        var value = Number(val) || 1;
 
         if (this._curSourceNode) {
           this._curSourceNode['playbackRate'].value = value;
@@ -37562,7 +37569,8 @@
 
       _classCallCheck(this, BenzAMRRecorder);
 
-      this._sampleRate = 8000;
+      this._sampleRate = 16000;
+      this._playbackRateChangeArr = [];
       this._isInit = false;
       this._isInitRecorder = false;
       this._recorderControl = new RecorderControl();
@@ -37584,7 +37592,9 @@
       this._pauseTime = 0.0;
 
       this._playEmpty = function () {
-        _this._recorderControl.playPcm(new Float32Array(10), 24000);
+        var sampleRate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 16000;
+
+        _this._recorderControl.playPcm(new Float32Array(10), sampleRate);
       };
 
       this._onEndCallback = function () {
@@ -37617,13 +37627,22 @@
         };
       };
     }
-    /**
-     * 是否已经初始化
-     * @return {boolean}
-     */
-
 
     _createClass(BenzAMRRecorder, [{
+      key: "setStartCtxTime",
+      value: function setStartCtxTime(val) {
+        this._startCtxTime = RecorderControl.getCtxTime() - val / this.playbackRate;
+        this._playbackRateChangeArr = [{
+          time: this._startCtxTime,
+          rate: this.playbackRate
+        }];
+      }
+      /**
+       * 是否已经初始化
+       * @return {boolean}
+       */
+
+    }, {
       key: "isInit",
       value: function isInit() {
         return this._isInit;
@@ -37649,11 +37668,19 @@
           var u8Array = new Uint8Array(array);
           var AMR_NB_HEADER = '#!AMR\n';
           var AMR_WB_HEADER = '#!AMR-WB\n';
+          var is_AMR_NB = false;
           var is_AMR_WB = false;
 
-          if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_NB_HEADER.length)) == AMR_NB_HEADER) ; else if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_WB_HEADER.length)) == AMR_WB_HEADER) {
+          if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_NB_HEADER.length)) == AMR_NB_HEADER) {
+            is_AMR_NB = true;
+            _this2._sampleRate = 8000;
+          } else if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_WB_HEADER.length)) == AMR_WB_HEADER) {
             is_AMR_WB = true;
             _this2._sampleRate = 16000;
+          }
+
+          if (is_AMR_NB || is_AMR_WB) {
+            _this2._playEmpty(_this2._sampleRate);
           }
 
           _this2.decodeAMRAsync(u8Array, is_AMR_WB).then(function (samples) {
@@ -37936,7 +37963,7 @@
 
         this._isPlaying = true;
         this._isPaused = false;
-        this._startCtxTime = RecorderControl.getCtxTime() - _startTime;
+        this.setStartCtxTime(_startTime);
 
         this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate, this._onEndCallback.bind(this), _startTime);
       }
@@ -37967,9 +37994,9 @@
           return;
         }
 
+        this._pauseTime = this.getCurrentPosition();
         this._isPlaying = false;
         this._isPaused = true;
-        this._pauseTime = RecorderControl.getCtxTime() - this._startCtxTime;
 
         this._recorderControl.stopPcm();
 
@@ -37990,7 +38017,7 @@
 
         this._isPlaying = true;
         this._isPaused = false;
-        this._startCtxTime = RecorderControl.getCtxTime() - this._pauseTime;
+        this.setStartCtxTime(this._pauseTime);
 
         this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate, this._onEndCallback.bind(this), this._pauseTime);
 
@@ -38056,7 +38083,7 @@
         } else if (this._isPlaying) {
           this._recorderControl.stopPcmSilently();
 
-          this._startCtxTime = RecorderControl.getCtxTime() - _time;
+          this.setStartCtxTime(_time);
 
           this._recorderControl.playPcm(this._samples, this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate, this._onEndCallback.bind(this), _time);
         } else {
@@ -38071,10 +38098,18 @@
     }, {
       key: "getCurrentPosition",
       value: function getCurrentPosition() {
+        if (this._isPlaying) {
+          var curTime = RecorderControl.getCtxTime();
+          return this._playbackRateChangeArr.reduceRight(function (acc, item, index, arr) {
+            var nextIndex = index + 1;
+            var isLast = nextIndex === arr.length;
+            acc += ((isLast ? curTime : arr[nextIndex].time) - item.time) * item.rate;
+            return acc;
+          }, 0);
+        }
+
         if (this._isPaused) {
           return this._pauseTime;
-        } else if (this._isPlaying) {
-          return RecorderControl.getCtxTime() - this._startCtxTime;
         }
 
         return 0;
@@ -38213,6 +38248,13 @@
       key: "playbackRate",
       set: function set(val) {
         this._recorderControl.playbackRate = val;
+
+        if (this._isPlaying) {
+          this._playbackRateChangeArr.push({
+            time: RecorderControl.getCtxTime(),
+            rate: val
+          });
+        }
       },
       get: function get() {
         return this._recorderControl.playbackRate;

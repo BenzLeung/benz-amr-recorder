@@ -29,15 +29,14 @@ export default class RecorderControl {
 
     _curSourceNode = null;
 
-    playPcm (samples, sampleRate, onEnded, startPos) {
-        if (!ctx || ctx.state === 'closed') {
-            ctx = new AudioContext();
+    playPcm (samples, sampleRate = 16000, onEnded, startPos) {
+        if (!ctx || ctx.state === 'closed' || ctx.sampleRate !== sampleRate) {
+            ctx && ctx.close();
+            ctx = new AudioContext({sampleRate});
         }
         if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
             ctx.resume();
         }
-
-        sampleRate = sampleRate || 8000;
         this.stopPcm();
         let _samples = (startPos && startPos > 0.001) ? (
             // 根据开始位置（秒数）截取播放采样
@@ -67,7 +66,9 @@ export default class RecorderControl {
 
     set playbackRate (val) {
         // 测试说速度比较快？做下均衡
-        let value = ((Number(val) || 1) + 1) / 2;
+        // let value = ((Number(val) || 1) + 1) / 2;
+
+        let value = Number(val) || 1;
 
         if (this._curSourceNode) {
             this._curSourceNode['playbackRate'].value = value;

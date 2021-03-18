@@ -23,7 +23,9 @@ const amrWbWorkerStr = amrWbWorker.toString()
 const amrWbWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blob([amrWbWorkerStr], {type:"text/javascript"}));
 
 export default class BenzAMRRecorder {
-    _sampleRate = 8000;
+    _sampleRate = 16000;
+
+    _playbackRateChangeArr = [];
 
     _isInit = false;
 
@@ -66,6 +68,14 @@ export default class BenzAMRRecorder {
     constructor() {
     }
 
+    setStartCtxTime (val) {
+        this._startCtxTime = RecorderControl.getCtxTime() - val / this.playbackRate;
+        this._playbackRateChangeArr = [{
+            time: this._startCtxTime,
+            rate: this.playbackRate
+        }];
+    }
+
     /**
      * 是否已经初始化
      * @return {boolean}
@@ -93,9 +103,13 @@ export default class BenzAMRRecorder {
 
             if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_NB_HEADER.length)) == AMR_NB_HEADER) {
                 is_AMR_NB = true;
+                this._sampleRate = 8000;
             } else if (String.fromCharCode.apply(null, u8Array.subarray(0, AMR_WB_HEADER.length)) == AMR_WB_HEADER) {
                 is_AMR_WB = true;
                 this._sampleRate = 16000;
+            }
+            if (is_AMR_NB || is_AMR_WB) {
+                this._playEmpty(this._sampleRate);
             }
 
             this.decodeAMRAsync(u8Array, is_AMR_WB).then((samples) => {
@@ -200,8 +214,8 @@ export default class BenzAMRRecorder {
      * 但即使如此，init* 仍然须放入一个用户事件中
      * @private
      */
-    _playEmpty = () => {
-        this._recorderControl.playPcm(new Float32Array(10), 24000);
+    _playEmpty = (sampleRate = 16000) => {
+        this._recorderControl.playPcm(new Float32Array(10), sampleRate);
     };
 
     on(action, fn) {
@@ -241,6 +255,12 @@ export default class BenzAMRRecorder {
 
     set playbackRate (val) {
         this._recorderControl.playbackRate = val;
+        if (this._isPlaying) {
+            this._playbackRateChangeArr.push({
+                time: RecorderControl.getCtxTime(),
+                rate: val
+            });
+        }
     }
     get playbackRate () {
         return this._recorderControl.playbackRate;
@@ -349,7 +369,8 @@ export default class BenzAMRRecorder {
         }
         this._isPlaying = true;
         this._isPaused = false;
-        this._startCtxTime = RecorderControl.getCtxTime() - _startTime;
+        this.setStartCtxTime(_startTime);
+
         this._recorderControl.playPcm(
             this._samples,
             this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
@@ -377,9 +398,9 @@ export default class BenzAMRRecorder {
         if (!this._isPlaying) {
             return;
         }
+        this._pauseTime = this.getCurrentPosition();
         this._isPlaying = false;
         this._isPaused = true;
-        this._pauseTime = RecorderControl.getCtxTime() - this._startCtxTime;
         this._recorderControl.stopPcm();
         if (this._onPause) {
             this._onPause();
@@ -395,7 +416,7 @@ export default class BenzAMRRecorder {
         }
         this._isPlaying = true;
         this._isPaused = false;
-        this._startCtxTime = RecorderControl.getCtxTime() - this._pauseTime;
+        this.setStartCtxTime(this._pauseTime);
         this._recorderControl.playPcm(
             this._samples,
             this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
@@ -454,7 +475,7 @@ export default class BenzAMRRecorder {
             this._pauseTime = _time;
         } else if (this._isPlaying) {
             this._recorderControl.stopPcmSilently();
-            this._startCtxTime = RecorderControl.getCtxTime() - _time;
+            this.setStartCtxTime(_time);
             this._recorderControl.playPcm(
                 this._samples,
                 this._isInitRecorder ? RecorderControl.getCtxSampleRate() : this._sampleRate,
@@ -471,10 +492,17 @@ export default class BenzAMRRecorder {
      * @return {Number} 位置，秒，浮点数
      */
     getCurrentPosition() {
+        if (this._isPlaying) {
+            let curTime = RecorderControl.getCtxTime();
+            return this._playbackRateChangeArr.reduceRight((acc, item, index, arr) => {
+                let nextIndex = index + 1;
+                let isLast = nextIndex === arr.length;
+                acc += ((isLast ? curTime : arr[nextIndex].time) - item.time) * item.rate;
+                return acc;
+            }, 0);
+        }
         if (this._isPaused) {
-            return this._pauseTime;
-        } else if (this._isPlaying) {
-            return RecorderControl.getCtxTime() - this._startCtxTime;
+            return this._pauseTime
         }
         return 0;
     }
