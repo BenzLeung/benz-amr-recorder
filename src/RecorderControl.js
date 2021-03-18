@@ -21,7 +21,7 @@ if (!AudioContext) {
 }
 
 export default class RecorderControl {
-
+    _playbackRate = 1;
     _recorderStream = null;
     _recorderStreamSourceNode = null;
     _recorder = null;
@@ -29,15 +29,14 @@ export default class RecorderControl {
 
     _curSourceNode = null;
 
-    playPcm (samples, sampleRate, onEnded, startPos) {
-        if (!ctx || ctx.state === 'closed') {
-            ctx = new AudioContext();
+    playPcm (samples, sampleRate = 16000, onEnded, startPos) {
+        if (!ctx || ctx.state === 'closed' || ctx.sampleRate !== sampleRate) {
+            ctx && ctx.close();
+            ctx = new AudioContext({sampleRate});
         }
         if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
             ctx.resume();
         }
-
-        sampleRate = sampleRate || 8000;
         this.stopPcm();
         let _samples = (startPos && startPos > 0.001) ? (
             // 根据开始位置（秒数）截取播放采样
@@ -48,22 +47,10 @@ export default class RecorderControl {
         }
         let buffer, channelBuffer;
         this._curSourceNode = ctx['createBufferSource']();
-        try {
-            buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
-        } catch (e) {
-            // iOS 不支持 22050 以下的采样率，于是先提升采样率，然后用慢速播放
-            if (sampleRate < 11025) {
-                /*buffer = ctx['createBuffer'](1, _samples.length * 3, sampleRate * 3);
-                _samples = this._increaseSampleRate(_samples, 3);*/
-                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 4);
-                this._curSourceNode['playbackRate'].value = 0.25;
-            } else {
-                /*buffer = ctx['createBuffer'](1, _samples.length * 2, sampleRate * 2);
-                _samples = this._increaseSampleRate(_samples, 2);*/
-                buffer = ctx['createBuffer'](1, _samples.length, sampleRate * 2);
-                this._curSourceNode['playbackRate'].value = 0.5;
-            }
-        }
+        this._curSourceNode['playbackRate'].value = this._playbackRate;
+
+        buffer = ctx['createBuffer'](1, _samples.length, sampleRate);
+
         if (buffer['copyToChannel']) {
             buffer['copyToChannel'](_samples, 0, 0)
         } else {
@@ -75,6 +62,21 @@ export default class RecorderControl {
         this._curSourceNode['connect'](ctx['destination']);
         this._curSourceNode.onended = onEnded;
         this._curSourceNode.start();
+    }
+
+    set playbackRate (val) {
+        // 测试说速度比较快？做下均衡
+        // let value = ((Number(val) || 1) + 1) / 2;
+
+        let value = Number(val) || 1;
+
+        if (this._curSourceNode) {
+            this._curSourceNode['playbackRate'].value = value;
+        }
+        this._playbackRate = value;
+    }
+    get playbackRate () {
+        return this._playbackRate;
     }
 
     stopPcm() {
@@ -220,17 +222,4 @@ export default class RecorderControl {
             }, reject);
         });
     }
-
-    /*
-    static _increaseSampleRate(samples, multiple) {
-        let sampleLen = samples.length;
-        let newSamples = new Float32Array(sampleLen * multiple);
-        for (let i = 0; i < sampleLen; i ++) {
-            for (let j = 0; j < multiple; j ++) {
-                newSamples[i * multiple + j] = samples[i];
-            }
-        }
-        return newSamples;
-    };
-    */
 }
