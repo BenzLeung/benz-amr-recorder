@@ -11,7 +11,15 @@
 
 注意：由于使用了 amr.js 做编码和解码，因此 js 文件（压缩后，未 gzip）接近 500 KB，使用前请考虑。
 
-**2019-10-05 更新 (v1.1.0)：** 增加浏览器支持检测功能，增加暂停播放、设置播放进度功能。
+**2019-10-05 更新 (v1.1.0)：** 
+
+增加浏览器支持检测功能，增加暂停播放、设置播放进度功能。
+
+**2022-09-26 更新 (v1.1.4)：** 
+
+1. 使用 `create-react-app` 脚手架测试了在 React 的使用情况，结论：没有发现问题。[代码点我](https://github.com/BenzLeung/test-amr-react)
+2. 增加一个~~好像没有什么用的~~ `destroy()`，功能：释放amr数据和pcm数据、解绑所有事件、令对象作废。
+3. 新功能：解绑事件，用法：给事件传入 `null`，例如：`amr.onPlay(null)` 。
 
 ## 特性
 
@@ -162,10 +170,12 @@ amr.initWithRecord();
 
 **注意：事件不会叠加，也就是说，新注册的事件将覆盖掉旧的事件。**
 
+**2022-09-26 更新：** 现在支持解绑事件，只要传入 `null`，例如 `amr.onPlay(null)` 。
+
 ```javascript
 /**
  * 播放
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onPlay(function() {
   console.log('开始播放');
@@ -175,7 +185,7 @@ amr.onPlay(function() {
 ```javascript
 /**
  * 停止（包括播放结束）
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onStop(function() {
   console.log('停止播放');
@@ -185,7 +195,7 @@ amr.onStop(function() {
 ```javascript
 /**
  * 暂停
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onPause(function() {
   console.log('暂停');
@@ -195,7 +205,7 @@ amr.onPause(function() {
 ```javascript
 /**
  * （暂停状态中）继续播放
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onResume(function() {
   console.log('继续播放');
@@ -205,7 +215,7 @@ amr.onResume(function() {
 ```javascript
 /**
  * 播放结束
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onEnded(function() {
   console.log('播放结束');
@@ -215,7 +225,7 @@ amr.onEnded(function() {
 ```javascript
 /**
  * 播放到结尾自动结束
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onAutoEnded(function() {
   console.log('播放自动结束');
@@ -225,7 +235,7 @@ amr.onAutoEnded(function() {
 ```javascript
 /**
  * 开始录音
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onStartRecord(function() {
   console.log('开始录音');
@@ -235,7 +245,7 @@ amr.onStartRecord(function() {
 ```javascript
 /**
  * 结束录音
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onFinishRecord(function() {
   console.log('结束录音');
@@ -386,6 +396,14 @@ amr.getBlob();
 
 ```javascript
 /**
+ * 释放amr文件数据，释放pcm音频数据，停止录音释放录音数据，取消监听所有事件，对象作废
+ * @since 1.1.4
+ */
+amr.destroy();
+```
+
+```javascript
+/**
  * 判断浏览器是否支持播放
  * 注意这是静态(static)方法
  * @since 1.1.0
@@ -416,6 +434,21 @@ BenzAMRRecorder.isRecordSupported();
 
 # 常见问题
 
+## - 初始化之后如何更换音频？
+
+请重新执行 `new BenzAMRRecorder()` 创建新的对象，然后用新的音频去初始化。
+
+旧的对象只要没有变量引用就会被浏览器作为垃圾回收内存。
+
+如果你的应用本身比较吃内存，或者希望更快地让浏览器回收内存，可以对旧的对象执行一下 `amr.destroy()` （版本 1.1.4），这样这个对象内部所存储的音频数据和文件数据都会被设置为 `null` ，然后这个对象就彻底不能用了。
+
+## 为什么不让旧的对象内部实现更换音频？
+
+1. 对象初始化时会决定该对象是用于录音或用于播放，重新初始化会让内部逻辑变得复杂。
+2. 本项目的主要用途是语音聊天，而不是音乐播放，所以项目架构设计成了“每一条语音消息对应一个 `BenzAMRRecorder` 对象”，可节省网络开销，多次播放音频也不消耗网络流量。
+3. 多个音频（对象）还可以同时混音播放。
+4. ^~~偷懒~~^。
+
 ## - 关于跨域
 
 这需要目标服务器（即存放amr文件的服务器）支持跨域，不是修改前端代码能解决的。
@@ -440,9 +473,17 @@ BenzAMRRecorder.isRecordSupported();
 
 由于本人已经不参与音频相关的项目，目前暂时没时间Debug了。哪位大佬要是帮忙修复了，欢迎提PR。
 
+**2022-09-26 更新：** 最近有点空，我用 `create-react-app` 创建了一个 React 初始项目，尝试把 `BenzAMRRecorder` 用于 React 。没有发现任何问题。
+
+## - 本项目与Benz有什么关系？
+
+Benz 是我本人从中学用到现在的英文名字，与某汽车厂商**完全无关**。
+
 ## - 似乎好久没有更新了？
 
 由于本人已经不参与音频相关的项目，目前暂时没时间做更新了。而且我个人感觉本项目也没什么重要的东西需要更新了。（项目的基础 [amr.js](https://github.com/jpemartins/amr.js) 也是n年没有更新了。）欢迎大佬们提PR。
+
+**2022-09-26 更新：** 做个小更新，主要试一试 Webpack 和 babel，当然我也没有手工地配置 Webpack 和 babel，就直接用脚手架 `create-react-app` 测试，然而用着很正常，没有发现问题。另外增加了事件取消绑定功能，以及增加一个~~好像没什么用的~~ `destroy()` 方法。
 
 # 许可
 

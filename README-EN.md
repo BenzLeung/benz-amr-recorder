@@ -160,10 +160,11 @@ amr.initWithRecord();
 
 **Notice: They will NOT add the event listener. They simply cover the old listener only.**
 
+
 ```javascript
 /**
  * On play
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onPlay(function() {
   console.log('play');
@@ -173,7 +174,7 @@ amr.onPlay(function() {
 ```javascript
 /**
  * On stop (Include onEnded)
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onStop(function() {
   console.log('stop playing');
@@ -183,7 +184,7 @@ amr.onStop(function() {
 ```javascript
 /**
  * On pause
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onPause(function() {
   console.log('pause');
@@ -193,7 +194,7 @@ amr.onPause(function() {
 ```javascript
 /**
  * On resume (form the paused state)
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onResume(function() {
   console.log('resume');
@@ -203,7 +204,7 @@ amr.onResume(function() {
 ```javascript
 /**
  * on play ended
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onEnded(function() {
   console.log('play ended');
@@ -213,7 +214,7 @@ amr.onEnded(function() {
 ```javascript
 /**
  * on play to end and automatically ended
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onAutoEnded(function() {
   console.log('play automatically ended');
@@ -223,7 +224,7 @@ amr.onAutoEnded(function() {
 ```javascript
 /**
  * on start record
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onStartRecord(function() {
   console.log('start record');
@@ -233,7 +234,7 @@ amr.onStartRecord(function() {
 ```javascript
 /**
  * on finish record
- * @param {Function} fn
+ * @param {Function | null} fn
  */
 amr.onFinishRecord(function() {
   console.log('finish record');
@@ -380,6 +381,14 @@ amr.getDuration();
  * @return {Blob}
  */
 amr.getBlob();
+```
+
+```javascript
+/**
+ * Release AMR data and PCM data, stop recording, remove all event listeners
+ * @since 1.1.4
+ */
+amr.destroy();
 ```
 
 ```javascript
