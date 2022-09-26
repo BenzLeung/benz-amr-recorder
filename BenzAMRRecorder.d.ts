@@ -7,6 +7,7 @@
  * each engineer has a duty to keep the code elegant
  */
 
+export type AMREvent = null|(() => void);
 export default class BenzAMRRecorder {
     constructor();
 
@@ -32,7 +33,7 @@ export default class BenzAMRRecorder {
     private _playEmpty: (() => void);
     private _onEndCallback: (() => void);
     private _runAMRWorker: Function;
-    private on(action: string, fn: () => void): void;
+    private on(action: string, fn: AMREvent): void;
     private throwAlreadyInitialized: (() => void);
 
     /**
@@ -148,55 +149,55 @@ export default class BenzAMRRecorder {
      * 播放事件
      * @param fn
      */
-    public onPlay(fn: () => void): void;
+    public onPlay(fn: AMREvent): void;
 
     /**
      * 停止事件（包括播放结束）
      * @param fn
      */
-    public onStop(fn: () => void): void;
+    public onStop(fn: AMREvent): void;
 
     /**
      * 暂停事件
      * @param fn
      */
-    public onPause(fn: () => void): void;
+    public onPause(fn: AMREvent): void;
 
     /**
      * 继续播放事件
      * @param fn
      */
-    public onResume(fn: () => void): void;
+    public onResume(fn: AMREvent): void;
 
     /**
      * 播放结束事件
      * @param fn
      */
-    public onEnded(fn: () => void): void;
+    public onEnded(fn: AMREvent): void;
 
     /**
      * 播放完毕自动结束事件
      * @param fn
      */
-    public onAutoEnded(fn: () => void): void;
+    public onAutoEnded(fn: AMREvent): void;
 
     /**
      * 开始录音事件
      * @param fn
      */
-    public onStartRecord(fn: () => void): void;
+    public onStartRecord(fn: AMREvent): void;
 
     /**
      * 结束录音事件
      * @param fn
      */
-    public onFinishRecord(fn: () => void): void;
+    public onFinishRecord(fn: AMREvent): void;
 
     /**
      * 放弃录音事件
      * @param fn
      */
-    public onCancelRecord(fn: () => void): void;
+    public onCancelRecord(fn: AMREvent): void;
 
     /**
      * 获取音频的时间长度（单位：秒）
@@ -206,7 +207,12 @@ export default class BenzAMRRecorder {
     /**
      * 获取 AMR 文件的 Blob 对象
      */
-    public getBlob(): Blob;
+    public getBlob(): Blob | null;
+
+    /**
+     * 注销，清理内部存储
+     */
+    public destroy(): void;
 
     /**
      * 编码 AMR

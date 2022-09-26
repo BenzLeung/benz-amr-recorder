@@ -24879,6 +24879,100 @@
   var BenzAMRRecorder =
   /*#__PURE__*/
   function () {
+    /**
+     * @type {boolean}
+     * @private
+     */
+
+    /**
+     * @type {boolean}
+     * @private
+     */
+
+    /**
+     * @type {RecorderControl | null}
+     * @private
+     */
+
+    /**
+     * @type {Float32Array | null}
+     * @private
+     */
+
+    /**
+     * @type {Uint8Array | null}
+     * @private
+     */
+
+    /**
+     * @type {Blob | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {Function | null}
+     * @private
+     */
+
+    /**
+     * @type {boolean}
+     * @private
+     */
+
+    /**
+     * @type {boolean}
+     * @private
+     */
+
+    /**
+     * @type {number}
+     * @private
+     */
+
+    /**
+     * @type {number}
+     * @private
+     */
     function BenzAMRRecorder() {
       var _this = this;
 
@@ -25090,14 +25184,14 @@
        * init 之前先播放一个空音频。
        * 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
        * 播放空音频防止加载后立即播放的功能失效。
-       * 但即使如此，init* 仍然须放入一个用户事件中
+       * 但即使如此，initWith* 仍然须放入一个用户事件中
        * @private
        */
 
     }, {
       key: "on",
       value: function on(action, fn) {
-        if (typeof fn === 'function') {
+        if (typeof fn === 'function' || fn === null) {
           switch (action) {
             case 'play':
               this._onPlay = fn;
@@ -25135,13 +25229,31 @@
               this._onFinishRecord = fn;
               break;
 
+            case '*':
+            case 'all':
+              this._onEnded = fn;
+              this._onAutoEnded = fn;
+              this._onPlay = fn;
+              this._onPause = fn;
+              this._onResume = fn;
+              this._onStop = fn;
+              this._onStartRecord = fn;
+              this._onCancelRecord = fn;
+              this._onFinishRecord = fn;
+              break;
+
             default:
           }
         }
       }
+    }, {
+      key: "off",
+      value: function off(action) {
+        this.on(action, null);
+      }
       /**
        * 播放事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25151,7 +25263,7 @@
       }
       /**
        * 停止事件（包括播放结束）
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25161,7 +25273,7 @@
       }
       /**
        * 暂停事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25171,7 +25283,7 @@
       }
       /**
        * 继续播放事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25181,7 +25293,7 @@
       }
       /**
        * 播放结束事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25191,7 +25303,7 @@
       }
       /**
        * 播放完毕自动结束事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25201,7 +25313,7 @@
       }
       /**
        * 开始录音事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25211,7 +25323,7 @@
       }
       /**
        * 结束录音事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25221,7 +25333,7 @@
       }
       /**
        * 放弃录音事件
-       * @param {Function} fn
+       * @param {Function | null} fn
        */
 
     }, {
@@ -25492,10 +25604,34 @@
         var rate = this._isInitRecorder ? RecorderControl.getCtxSampleRate() : 8000;
         return this._samples.length / rate;
       }
+      /**
+       * 获取 AMR 文件的 Blob 对象
+       * @returns {Blob|null}
+       */
+
     }, {
       key: "getBlob",
       value: function getBlob() {
         return this._blob;
+      }
+      /**
+       * 注销，清理内部存储
+       */
+
+    }, {
+      key: "destroy",
+      value: function destroy() {
+        this._recorderControl.stopPcmSilently();
+
+        this._recorderControl.stopRecord();
+
+        this._recorderControl.releaseRecord();
+
+        this.off('*');
+        this._recorderControl = null;
+        this._samples = null;
+        this._rawData = null;
+        this._blob = null;
       }
       /*
       static encodeAMR(samples, sampleRate) {

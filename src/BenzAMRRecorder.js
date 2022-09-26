@@ -18,42 +18,118 @@ const amrWorkerURLObj = (window.URL || window.webkitURL).createObjectURL(new Blo
 
 export default class BenzAMRRecorder {
 
+    /**
+     * @type {boolean}
+     * @private
+     */
     _isInit = false;
 
+    /**
+     * @type {boolean}
+     * @private
+     */
     _isInitRecorder = false;
 
+    /**
+     * @type {RecorderControl | null}
+     * @private
+     */
     _recorderControl = new RecorderControl();
 
+    /**
+     * @type {Float32Array | null}
+     * @private
+     */
     _samples = new Float32Array(0);
 
+    /**
+     * @type {Uint8Array | null}
+     * @private
+     */
     _rawData = new Uint8Array(0);
 
+    /**
+     * @type {Blob | null}
+     * @private
+     */
     _blob = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onEnded = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onAutoEnded = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onPlay = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onPause = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onResume = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onStop = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onStartRecord = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onCancelRecord = null;
 
+    /**
+     * @type {Function | null}
+     * @private
+     */
     _onFinishRecord = null;
 
+    /**
+     * @type {boolean}
+     * @private
+     */
     _isPlaying = false;
 
+    /**
+     * @type {boolean}
+     * @private
+     */
     _isPaused = false;
 
+    /**
+     * @type {number}
+     * @private
+     */
     _startCtxTime = 0.0;
 
+    /**
+     * @type {number}
+     * @private
+     */
     _pauseTime = 0.0;
     
     constructor() {
@@ -178,7 +254,7 @@ export default class BenzAMRRecorder {
      * init 之前先播放一个空音频。
      * 因为有些环境（如iOS）播放首个音频时禁止自动、异步播放，
      * 播放空音频防止加载后立即播放的功能失效。
-     * 但即使如此，init* 仍然须放入一个用户事件中
+     * 但即使如此，initWith* 仍然须放入一个用户事件中
      * @private
      */
     _playEmpty = () => {
@@ -186,7 +262,7 @@ export default class BenzAMRRecorder {
     };
 
     on(action, fn) {
-        if (typeof fn === 'function') {
+        if (typeof fn === 'function' || fn === null) {
             switch (action) {
                 case 'play':
                     this._onPlay = fn;
@@ -215,14 +291,30 @@ export default class BenzAMRRecorder {
                 case 'finishRecord':
                     this._onFinishRecord = fn;
                     break;
+                case '*':
+                case 'all':
+                    this._onEnded = fn;
+                    this._onAutoEnded = fn;
+                    this._onPlay = fn;
+                    this._onPause = fn;
+                    this._onResume = fn;
+                    this._onStop = fn;
+                    this._onStartRecord = fn;
+                    this._onCancelRecord = fn;
+                    this._onFinishRecord = fn;
+                    break;
                 default:
             }
         }
     }
 
+    off(action) {
+        this.on(action, null);
+    }
+
     /**
      * 播放事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onPlay(fn) {
         this.on('play', fn);
@@ -230,7 +322,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 停止事件（包括播放结束）
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onStop(fn) {
         this.on('stop', fn);
@@ -238,7 +330,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 暂停事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onPause(fn) {
         this.on('pause', fn);
@@ -246,7 +338,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 继续播放事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onResume(fn) {
         this.on('resume', fn);
@@ -254,7 +346,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 播放结束事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onEnded(fn) {
         this.on('ended', fn);
@@ -262,7 +354,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 播放完毕自动结束事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onAutoEnded(fn) {
         this.on('autoEnded', fn);
@@ -270,7 +362,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 开始录音事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onStartRecord(fn) {
         this.on('startRecord', fn);
@@ -278,7 +370,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 结束录音事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onFinishRecord(fn) {
         this.on('finishRecord', fn);
@@ -286,7 +378,7 @@ export default class BenzAMRRecorder {
 
     /**
      * 放弃录音事件
-     * @param {Function} fn
+     * @param {Function | null} fn
      */
     onCancelRecord(fn) {
         this.on('cancelRecord', fn);
@@ -530,8 +622,26 @@ export default class BenzAMRRecorder {
         return this._samples.length / rate;
     }
 
+    /**
+     * 获取 AMR 文件的 Blob 对象
+     * @returns {Blob|null}
+     */
     getBlob() {
         return this._blob;
+    }
+
+    /**
+     * 注销，清理内部存储
+     */
+    destroy() {
+        this._recorderControl.stopPcmSilently();
+        this._recorderControl.stopRecord();
+        this._recorderControl.releaseRecord();
+        this.off('*');
+        this._recorderControl = null;
+        this._samples = null;
+        this._rawData = null;
+        this._blob = null;
     }
 
     /*
