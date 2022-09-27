@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.BenzAMRRecorder = factory());
-}(this, function () {
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.BenzAMRRecorder = factory());
+})(this, (function () {
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -25,267 +25,267 @@
     return Constructor;
   }
 
-  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-  function createCommonjsModule(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
-  }
+  var recorder_build = {exports: {}};
 
-  var recorder_build = createCommonjsModule(function (module, exports) {
-  (function (global, factory) {
-      module.exports = factory();
-  }(commonjsGlobal, (function () {
-      var recorderWorker = function () {
+  (function (module, exports) {
+  	(function (global, factory) {
+  	    module.exports = factory() ;
+  	}(commonjsGlobal, (function () {
+  	    var recorderWorker = function () {
 
-          var recLength = 0,
-              recBuffersL = [],
-              recBuffersR = [],
-              sampleRate;
+  	        var recLength = 0,
+  	            recBuffersL = [],
+  	            recBuffersR = [],
+  	            sampleRate;
 
 
-          self.onmessage = function (e) {
-              switch (e.data.command) {
-                  case 'init':
-                      init(e.data.config);
-                      break;
-                  case 'record':
-                      record(e.data.buffer);
-                      break;
-                  case 'exportWAV':
-                      exportWAV(e.data.type);
-                      break;
-                  case 'getBuffer':
-                      getBuffer();
-                      break;
-                  case 'clear':
-                      clear();
-                      break;
-              }
-          };
+  	        self.onmessage = function (e) {
+  	            switch (e.data.command) {
+  	                case 'init':
+  	                    init(e.data.config);
+  	                    break;
+  	                case 'record':
+  	                    record(e.data.buffer);
+  	                    break;
+  	                case 'exportWAV':
+  	                    exportWAV(e.data.type);
+  	                    break;
+  	                case 'getBuffer':
+  	                    getBuffer();
+  	                    break;
+  	                case 'clear':
+  	                    clear();
+  	                    break;
+  	            }
+  	        };
 
-          function init(config) {
-              sampleRate = config.sampleRate;
-          }
+  	        function init(config) {
+  	            sampleRate = config.sampleRate;
+  	        }
 
-          function record(inputBuffer) {
-              recBuffersL.push(inputBuffer[0]);
-              recBuffersR.push(inputBuffer[1]);
-              recLength += inputBuffer[0].length;
-          }
+  	        function record(inputBuffer) {
+  	            recBuffersL.push(inputBuffer[0]);
+  	            recBuffersR.push(inputBuffer[1]);
+  	            recLength += inputBuffer[0].length;
+  	        }
 
-          function exportWAV(type) {
-              var bufferL = mergeBuffers(recBuffersL, recLength);
-              var bufferR = mergeBuffers(recBuffersR, recLength);
-              var interleaved = interleave(bufferL, bufferR);
-              var dataview = encodeWAV(interleaved);
-              var audioBlob = new Blob([dataview], {type: type});
+  	        function exportWAV(type) {
+  	            var bufferL = mergeBuffers(recBuffersL, recLength);
+  	            var bufferR = mergeBuffers(recBuffersR, recLength);
+  	            var interleaved = interleave(bufferL, bufferR);
+  	            var dataview = encodeWAV(interleaved);
+  	            var audioBlob = new Blob([dataview], {type: type});
 
-              self.postMessage({
-                  type: 'blob',
-                  data: audioBlob
-              });
-          }
+  	            self.postMessage({
+  	                type: 'blob',
+  	                data: audioBlob
+  	            });
+  	        }
 
-          function getBuffer() {
-              var buffers = [];
-              buffers.push(mergeBuffers(recBuffersL, recLength));
-              buffers.push(mergeBuffers(recBuffersR, recLength));
-              self.postMessage({
-                  type: 'buffer',
-                  data: buffers
-              });
-          }
+  	        function getBuffer() {
+  	            var buffers = [];
+  	            buffers.push(mergeBuffers(recBuffersL, recLength));
+  	            buffers.push(mergeBuffers(recBuffersR, recLength));
+  	            self.postMessage({
+  	                type: 'buffer',
+  	                data: buffers
+  	            });
+  	        }
 
-          function clear() {
-              recLength = 0;
-              recBuffersL = [];
-              recBuffersR = [];
-          }
+  	        function clear() {
+  	            recLength = 0;
+  	            recBuffersL = [];
+  	            recBuffersR = [];
+  	        }
 
-          function mergeBuffers(recBuffers, recLength) {
-              var result = new Float32Array(recLength);
-              var offset = 0;
-              for (var i = 0; i < recBuffers.length; i++) {
-                  result.set(recBuffers[i], offset);
-                  offset += recBuffers[i].length;
-              }
-              return result;
-          }
+  	        function mergeBuffers(recBuffers, recLength) {
+  	            var result = new Float32Array(recLength);
+  	            var offset = 0;
+  	            for (var i = 0; i < recBuffers.length; i++) {
+  	                result.set(recBuffers[i], offset);
+  	                offset += recBuffers[i].length;
+  	            }
+  	            return result;
+  	        }
 
-          function interleave(inputL, inputR) {
-              var length = inputL.length + inputR.length;
-              var result = new Float32Array(length);
+  	        function interleave(inputL, inputR) {
+  	            var length = inputL.length + inputR.length;
+  	            var result = new Float32Array(length);
 
-              var index = 0,
-                  inputIndex = 0;
+  	            var index = 0,
+  	                inputIndex = 0;
 
-              while (index < length) {
-                  result[index++] = inputL[inputIndex];
-                  result[index++] = inputR[inputIndex];
-                  inputIndex++;
-              }
-              return result;
-          }
+  	            while (index < length) {
+  	                result[index++] = inputL[inputIndex];
+  	                result[index++] = inputR[inputIndex];
+  	                inputIndex++;
+  	            }
+  	            return result;
+  	        }
 
-          function floatTo16BitPCM(output, offset, input) {
-              for (var i = 0; i < input.length; i++, offset += 2) {
-                  var s = Math.max(-1, Math.min(1, input[i]));
-                  output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-              }
-          }
+  	        function floatTo16BitPCM(output, offset, input) {
+  	            for (var i = 0; i < input.length; i++, offset += 2) {
+  	                var s = Math.max(-1, Math.min(1, input[i]));
+  	                output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  	            }
+  	        }
 
-          function writeString(view, offset, string) {
-              for (var i = 0; i < string.length; i++) {
-                  view.setUint8(offset + i, string.charCodeAt(i));
-              }
-          }
+  	        function writeString(view, offset, string) {
+  	            for (var i = 0; i < string.length; i++) {
+  	                view.setUint8(offset + i, string.charCodeAt(i));
+  	            }
+  	        }
 
-          function encodeWAV(samples) {
-              var buffer = new ArrayBuffer(44 + samples.length * 2);
-              var view = new DataView(buffer);
+  	        function encodeWAV(samples) {
+  	            var buffer = new ArrayBuffer(44 + samples.length * 2);
+  	            var view = new DataView(buffer);
 
-              /* RIFF identifier */
-              writeString(view, 0, 'RIFF');
-              /* RIFF chunk length */
-              view.setUint32(4, 36 + samples.length * 2, true);
-              /* RIFF type */
-              writeString(view, 8, 'WAVE');
-              /* format chunk identifier */
-              writeString(view, 12, 'fmt ');
-              /* format chunk length */
-              view.setUint32(16, 16, true);
-              /* sample format (raw) */
-              view.setUint16(20, 1, true);
-              /* channel count */
-              view.setUint16(22, 2, true);
-              /* sample rate */
-              view.setUint32(24, sampleRate, true);
-              /* byte rate (sample rate * block align) */
-              view.setUint32(28, sampleRate * 4, true);
-              /* block align (channel count * bytes per sample) */
-              view.setUint16(32, 4, true);
-              /* bits per sample */
-              view.setUint16(34, 16, true);
-              /* data chunk identifier */
-              writeString(view, 36, 'data');
-              /* data chunk length */
-              view.setUint32(40, samples.length * 2, true);
+  	            /* RIFF identifier */
+  	            writeString(view, 0, 'RIFF');
+  	            /* RIFF chunk length */
+  	            view.setUint32(4, 36 + samples.length * 2, true);
+  	            /* RIFF type */
+  	            writeString(view, 8, 'WAVE');
+  	            /* format chunk identifier */
+  	            writeString(view, 12, 'fmt ');
+  	            /* format chunk length */
+  	            view.setUint32(16, 16, true);
+  	            /* sample format (raw) */
+  	            view.setUint16(20, 1, true);
+  	            /* channel count */
+  	            view.setUint16(22, 2, true);
+  	            /* sample rate */
+  	            view.setUint32(24, sampleRate, true);
+  	            /* byte rate (sample rate * block align) */
+  	            view.setUint32(28, sampleRate * 4, true);
+  	            /* block align (channel count * bytes per sample) */
+  	            view.setUint16(32, 4, true);
+  	            /* bits per sample */
+  	            view.setUint16(34, 16, true);
+  	            /* data chunk identifier */
+  	            writeString(view, 36, 'data');
+  	            /* data chunk length */
+  	            view.setUint32(40, samples.length * 2, true);
 
-              floatTo16BitPCM(view, 44, samples);
+  	            floatTo16BitPCM(view, 44, samples);
 
-              return view;
-          }
+  	            return view;
+  	        }
 
-      };
+  	    };
 
-      var recorderWorkerStr = recorderWorker.toString()
-          .replace(/^\s*function.*?\(\)\s*{/, '')
-          .replace(/}\s*$/, '');
+  	    var recorderWorkerStr = recorderWorker.toString()
+  	        .replace(/^\s*function.*?\(\)\s*{/, '')
+  	        .replace(/}\s*$/, '');
 
-      // var WORKER_PATH = './recorderWorker.js';
+  	    // var WORKER_PATH = './recorderWorker.js';
 
-      var Recorder = function(source, cfg){
-        var config = cfg || {};
-        var bufferLen = config.bufferLen || 4096;
-        this.context = source.context;
-        this.node = (this.context.createScriptProcessor ||
-                     this.context.createJavaScriptNode).call(this.context,
-                                                             bufferLen, 2, 2);
-        var worker = new Worker((window.URL || window.webkitURL).createObjectURL(new Blob([recorderWorkerStr], {type:"text/javascript"})));
-        worker.onmessage = function(e){
-          if (e.data.type === 'blob') {
-              currCallbackWithBlob(e.data.data);
-          } else {
-              currCallbackWithBuffer(e.data.data);
-          }
-        };
+  	    var Recorder = function(source, cfg){
+  	      var config = cfg || {};
+  	      var bufferLen = config.bufferLen || 4096;
+  	      this.context = source.context;
+  	      this.node = (this.context.createScriptProcessor ||
+  	                   this.context.createJavaScriptNode).call(this.context,
+  	                                                           bufferLen, 2, 2);
+  	      var worker = new Worker((window.URL || window.webkitURL).createObjectURL(new Blob([recorderWorkerStr], {type:"text/javascript"})));
+  	      worker.onmessage = function(e){
+  	        if (e.data.type === 'blob') {
+  	            currCallbackWithBlob(e.data.data);
+  	        } else {
+  	            currCallbackWithBuffer(e.data.data);
+  	        }
+  	      };
 
-        worker.postMessage({
-          command: 'init',
-          config: {
-            sampleRate: this.context.sampleRate
-          }
-        });
-        var recording = false,
-          currCallbackWithBuffer,
-          currCallbackWithBlob;
+  	      worker.postMessage({
+  	        command: 'init',
+  	        config: {
+  	          sampleRate: this.context.sampleRate
+  	        }
+  	      });
+  	      var recording = false,
+  	        currCallbackWithBuffer,
+  	        currCallbackWithBlob;
 
-        this.node.onaudioprocess = function(e){
-          if (!recording) return;
-          worker.postMessage({
-            command: 'record',
-            buffer: [
-              e.inputBuffer.getChannelData(0),
-              e.inputBuffer.getChannelData(1)
-            ]
-          });
-        };
+  	      this.node.onaudioprocess = function(e){
+  	        if (!recording) return;
+  	        worker.postMessage({
+  	          command: 'record',
+  	          buffer: [
+  	            e.inputBuffer.getChannelData(0),
+  	            e.inputBuffer.getChannelData(1)
+  	          ]
+  	        });
+  	      };
 
-        this.configure = function(cfg){
-          for (var prop in cfg){
-            if (cfg.hasOwnProperty(prop)){
-              config[prop] = cfg[prop];
-            }
-          }
-        };
+  	      this.configure = function(cfg){
+  	        for (var prop in cfg){
+  	          if (cfg.hasOwnProperty(prop)){
+  	            config[prop] = cfg[prop];
+  	          }
+  	        }
+  	      };
 
-        this.record = function(){
-          recording = true;
-        };
+  	      this.record = function(){
+  	        recording = true;
+  	      };
 
-        this.stop = function(){
-          recording = false;
-        };
+  	      this.stop = function(){
+  	        recording = false;
+  	      };
 
-        this.clear = function(){
-          worker.postMessage({ command: 'clear' });
-        };
+  	      this.clear = function(){
+  	        worker.postMessage({ command: 'clear' });
+  	      };
 
-        this.getBuffer = function(cb) {
-          currCallbackWithBuffer = cb || config.callback;
-          worker.postMessage({ command: 'getBuffer' });
-        };
+  	      this.getBuffer = function(cb) {
+  	        currCallbackWithBuffer = cb || config.callback;
+  	        worker.postMessage({ command: 'getBuffer' });
+  	      };
 
-        this.exportWAV = function(cb, type){
-          currCallbackWithBlob = cb || config.callback;
-          type = type || config.type || 'audio/wav';
-          if (!currCallbackWithBlob) throw new Error('Callback not set');
-          worker.postMessage({
-            command: 'exportWAV',
-            type: type
-          });
-        };
+  	      this.exportWAV = function(cb, type){
+  	        currCallbackWithBlob = cb || config.callback;
+  	        type = type || config.type || 'audio/wav';
+  	        if (!currCallbackWithBlob) throw new Error('Callback not set');
+  	        worker.postMessage({
+  	          command: 'exportWAV',
+  	          type: type
+  	        });
+  	      };
 
-        this.release = function() {
-          this.stop();
-          this.clear();
-          this.configure = this.record = this.stop = this.clear = this.getBuffer = this.exportWAV = function () {};
-          source.disconnect(this.node);
-          this.node.onaudioprocess = null;
-          this.node.disconnect();
-          worker.terminate();
-        };
+  	      this.release = function() {
+  	        this.stop();
+  	        this.clear();
+  	        this.configure = this.record = this.stop = this.clear = this.getBuffer = this.exportWAV = function () {};
+  	        source.disconnect(this.node);
+  	        this.node.onaudioprocess = null;
+  	        this.node.disconnect();
+  	        worker.terminate();
+  	      };
 
-        source.connect(this.node);
-        this.node.connect(this.context.destination);    //this should not be necessary
-      };
+  	      source.connect(this.node);
+  	      this.node.connect(this.context.destination);    //this should not be necessary
+  	    };
 
-      Recorder.forceDownload = function(blob, filename){
-        var url = (window.URL || window.webkitURL).createObjectURL(blob);
-        var link = window.document.createElement('a');
-        link.href = url;
-        link.download = filename || 'output.wav';
-        var click = document.createEvent("Event");
-        click.initEvent("click", true, true);
-        link.dispatchEvent(click);
-      };
+  	    Recorder.forceDownload = function(blob, filename){
+  	      var url = (window.URL || window.webkitURL).createObjectURL(blob);
+  	      var link = window.document.createElement('a');
+  	      link.href = url;
+  	      link.download = filename || 'output.wav';
+  	      var click = document.createEvent("Event");
+  	      click.initEvent("click", true, true);
+  	      link.dispatchEvent(click);
+  	    };
 
-      var recorder = Recorder;
+  	    var recorder = Recorder;
 
-      return recorder;
+  	    return recorder;
 
-  })));
-  });
+  	})));
+  } (recorder_build));
+
+  var Recorder = recorder_build.exports;
 
   var AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
   var ctx = null;
@@ -390,7 +390,7 @@
           var s = function s(stream) {
             _this._recorderStream = stream;
             _this._recorderStreamSourceNode = ctx.createMediaStreamSource(stream);
-            _this._recorder = new recorder_build(_this._recorderStreamSourceNode);
+            _this._recorder = new Recorder(_this._recorderStreamSourceNode);
             _this._isRecording = false;
             resolve();
           };
@@ -777,7 +777,7 @@
               Module["read"] = read;
           } else {
               Module["read"] = function read() {
-                  throw"no read() available (jsc?)"
+                  throw "no read() available (jsc?)"
               };
           }
           Module["readBinary"] = function readBinary(f) {
@@ -826,7 +826,7 @@
               });
           }
       } else {
-          throw"Unknown runtime environment. Where are we?"
+          throw "Unknown runtime environment. Where are we?"
       }
 
       function globalEval(x) {
@@ -927,7 +927,7 @@
                       return 2 * (1 + i)
                   }
               }
-              throw"Finished up all reserved function pointers. Use a higher value for RESERVED_FUNCTION_POINTERS."
+              throw "Finished up all reserved function pointers. Use a higher value for RESERVED_FUNCTION_POINTERS."
           }), removeFunction: (function (index) {
               Runtime.functionPointers[(index - 2) / 2] = null;
           }), warnOnce: (function (text) {
@@ -949,7 +949,7 @@
               }
               return sigCache[func]
           }), getCompilerSetting: (function (name) {
-              throw"You must build with -s RETAIN_COMPILER_SETTINGS=1 for Runtime.getCompilerSetting or emscripten_get_compiler_setting to work"
+              throw "You must build with -s RETAIN_COMPILER_SETTINGS=1 for Runtime.getCompilerSetting or emscripten_get_compiler_setting to work"
           }), stackAlloc: (function (size) {
               var ret = STACKTOP;
               STACKTOP = STACKTOP + size | 0;
@@ -1642,16 +1642,14 @@
                               i += size + 2;
                               break
                           }
-
                           case"A": {
                               var size = parseInt(func.substr(i));
                               i += size.toString().length;
-                              if (func[i] !== "_") throw"?";
+                              if (func[i] !== "_") throw "?";
                               i++;
                               list.push(parse(true, 1, true)[0] + " [" + size + "]");
                               break
                           }
-
                           case"E":
                               break paramLoop;
                           default:
@@ -1945,12 +1943,7 @@
       var Math_floor = Math.floor;
       var Math_min = Math.min;
       var runDependencies = 0;
-      var runDependencyWatcher = null;
       var dependenciesFulfilled = null;
-
-      function getUniqueRunDependency(id) {
-          return id
-      }
 
       function addRunDependency(id) {
           runDependencies++;
@@ -1967,10 +1960,6 @@
               Module["monitorRunDependencies"](runDependencies);
           }
           if (runDependencies == 0) {
-              if (runDependencyWatcher !== null) {
-                  clearInterval(runDependencyWatcher);
-                  runDependencyWatcher = null;
-              }
               if (dependenciesFulfilled) {
                   var callback = dependenciesFulfilled;
                   dependenciesFulfilled = null;
@@ -2827,7 +2816,7 @@
                   if (mmapFlags & 2) {
                       return 0
                   }
-                  var bytesWritten = MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
+                  MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
                   return 0
               })
           }
@@ -3017,7 +3006,7 @@
               }));
               var remove = [];
               Object.keys(dst.entries).forEach((function (key) {
-                  var e = dst.entries[key];
+                  dst.entries[key];
                   var e2 = src.entries[key];
                   if (!e2) {
                       remove.push(key);
@@ -3194,9 +3183,9 @@
               })
           }
       };
-      var _stdin = allocate(1, "i32*", ALLOC_STATIC);
-      var _stdout = allocate(1, "i32*", ALLOC_STATIC);
-      var _stderr = allocate(1, "i32*", ALLOC_STATIC);
+      allocate(1, "i32*", ALLOC_STATIC);
+      allocate(1, "i32*", ALLOC_STATIC);
+      allocate(1, "i32*", ALLOC_STATIC);
       var FS = {
           root: null,
           mounts: [],
@@ -3774,6 +3763,9 @@
                   }
               }
               try {
+                  if (FS.trackingDelegate["willMovePath"]) {
+                      FS.trackingDelegate["willMovePath"](old_path, new_path);
+                  }
               } catch (e) {
                   console.log("FS.trackingDelegate['willMovePath']('" + old_path + "', '" + new_path + "') threw an exception: " + e.message);
               }
@@ -3786,6 +3778,7 @@
                   FS.hashAddNode(old_node);
               }
               try {
+                  if (FS.trackingDelegate["onMovePath"]) FS.trackingDelegate["onMovePath"](old_path, new_path);
               } catch (e) {
                   console.log("FS.trackingDelegate['onMovePath']('" + old_path + "', '" + new_path + "') threw an exception: " + e.message);
               }
@@ -3806,12 +3799,16 @@
                   throw new FS.ErrnoError(ERRNO_CODES.EBUSY)
               }
               try {
+                  if (FS.trackingDelegate["willDeletePath"]) {
+                      FS.trackingDelegate["willDeletePath"](path);
+                  }
               } catch (e) {
                   console.log("FS.trackingDelegate['willDeletePath']('" + path + "') threw an exception: " + e.message);
               }
               parent.node_ops.rmdir(parent, name);
               FS.destroyNode(node);
               try {
+                  if (FS.trackingDelegate["onDeletePath"]) FS.trackingDelegate["onDeletePath"](path);
               } catch (e) {
                   console.log("FS.trackingDelegate['onDeletePath']('" + path + "') threw an exception: " + e.message);
               }
@@ -3841,12 +3838,16 @@
                   throw new FS.ErrnoError(ERRNO_CODES.EBUSY)
               }
               try {
+                  if (FS.trackingDelegate["willDeletePath"]) {
+                      FS.trackingDelegate["willDeletePath"](path);
+                  }
               } catch (e) {
                   console.log("FS.trackingDelegate['willDeletePath']('" + path + "') threw an exception: " + e.message);
               }
               parent.node_ops.unlink(parent, name);
               FS.destroyNode(node);
               try {
+                  if (FS.trackingDelegate["onDeletePath"]) FS.trackingDelegate["onDeletePath"](path);
               } catch (e) {
                   console.log("FS.trackingDelegate['onDeletePath']('" + path + "') threw an exception: " + e.message);
               }
@@ -4036,6 +4037,16 @@
                   }
               }
               try {
+                  if (FS.trackingDelegate["onOpenFile"]) {
+                      var trackingFlags = 0;
+                      if ((flags & 2097155) !== 1) {
+                          trackingFlags |= FS.tracking.openFlags.READ;
+                      }
+                      if ((flags & 2097155) !== 0) {
+                          trackingFlags |= FS.tracking.openFlags.WRITE;
+                      }
+                      FS.trackingDelegate["onOpenFile"](path, trackingFlags);
+                  }
               } catch (e) {
                   console.log("FS.trackingDelegate['onOpenFile']('" + path + "', flags) threw an exception: " + e.message);
               }
@@ -4581,7 +4592,7 @@
                   this.lengthKnown = true;
               };
               if (typeof XMLHttpRequest !== "undefined") {
-                  if (!ENVIRONMENT_IS_WORKER) throw"Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc";
+                  if (!ENVIRONMENT_IS_WORKER) throw "Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc";
                   var lazyArray = new LazyUint8Array;
                   Object.defineProperty(lazyArray, "length", {
                       get: (function () {
@@ -4651,7 +4662,6 @@
           createPreloadedFile: (function (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) {
               Browser.init();
               var fullname = name ? PATH.resolve(PATH.join2(parent, name)) : parent;
-              var dep = getUniqueRunDependency("cp " + fullname);
 
               function processData(byteArray) {
                   function finish(byteArray) {
@@ -4660,7 +4670,7 @@
                           FS.createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
                       }
                       if (onload) onload();
-                      removeRunDependency(dep);
+                      removeRunDependency();
                   }
 
                   var handled = false;
@@ -4669,7 +4679,7 @@
                       if (plugin["canHandle"](fullname)) {
                           plugin["handle"](byteArray, fullname, finish, (function () {
                               if (onerror) onerror();
-                              removeRunDependency(dep);
+                              removeRunDependency();
                           }));
                           handled = true;
                       }
@@ -4677,7 +4687,7 @@
                   if (!handled) finish(byteArray);
               }
 
-              addRunDependency(dep);
+              addRunDependency();
               if (typeof url == "string") {
                   Browser.asyncLoad(url, (function (byteArray) {
                       processData(byteArray);
@@ -4986,7 +4996,7 @@
               Browser.mainLoop.scheduler();
           }
           if (simulateInfiniteLoop) {
-              throw"SimulateInfiniteLoop"
+              throw "SimulateInfiniteLoop"
           }
       }
 
@@ -5406,7 +5416,7 @@
                       delta = event["deltaY"];
                       break;
                   default:
-                      throw"unrecognized mouse wheel event: " + event.type
+                      throw "unrecognized mouse wheel event: " + event.type
               }
               return delta
           }),
@@ -5486,15 +5496,15 @@
               Browser.xhrLoad(url, (function (arrayBuffer) {
                   assert(arrayBuffer, 'Loading data file "' + url + '" failed (no arrayBuffer).');
                   onload(new Uint8Array(arrayBuffer));
-                  if (!noRunDep) removeRunDependency("al " + url);
+                  if (!noRunDep) removeRunDependency();
               }), (function (event) {
                   if (onerror) {
                       onerror();
                   } else {
-                      throw'Loading data file "' + url + '" failed.'
+                      throw 'Loading data file "' + url + '" failed.'
                   }
               }));
-              if (!noRunDep) addRunDependency("al " + url);
+              if (!noRunDep) addRunDependency();
           }),
           resizeListeners: [],
           updateResizeListeners: (function () {
@@ -5682,8 +5692,22 @@
           var j = env.STACK_MAX | 0;
           var k = env.tempDoublePtr | 0;
           var l = env.ABORT | 0;
+          var m = 0;
+          var n = 0;
+          var o = 0;
+          var p = 0;
           var q = global.NaN, r = global.Infinity;
+          var s = 0, t = 0, u = 0, v = 0, w = 0.0, x = 0, y = 0, z = 0, A = 0.0;
           var B = 0;
+          var C = 0;
+          var D = 0;
+          var E = 0;
+          var F = 0;
+          var G = 0;
+          var H = 0;
+          var I = 0;
+          var J = 0;
+          var K = 0;
           var L = global.Math.floor;
           var M = global.Math.abs;
           var N = global.Math.sqrt;
@@ -5712,6 +5736,7 @@
           var ia = env._emscripten_set_main_loop_timing;
           var ja = env._emscripten_memcpy_big;
           var ka = env._emscripten_set_main_loop;
+          var la = 0.0;
 
   // EMSCRIPTEN_START_FUNCS
           function ma(a) {
@@ -5742,6 +5767,30 @@
           function qa(a, b) {
               a = a | 0;
               b = b | 0;
+              if (!m) {
+                  m = a;
+                  n = b;
+              }
+          }
+
+          function ra(b) {
+              b = b | 0;
+              a[k >> 0] = a[b >> 0];
+              a[k + 1 >> 0] = a[b + 1 >> 0];
+              a[k + 2 >> 0] = a[b + 2 >> 0];
+              a[k + 3 >> 0] = a[b + 3 >> 0];
+          }
+
+          function sa(b) {
+              b = b | 0;
+              a[k >> 0] = a[b >> 0];
+              a[k + 1 >> 0] = a[b + 1 >> 0];
+              a[k + 2 >> 0] = a[b + 2 >> 0];
+              a[k + 3 >> 0] = a[b + 3 >> 0];
+              a[k + 4 >> 0] = a[b + 4 >> 0];
+              a[k + 5 >> 0] = a[b + 5 >> 0];
+              a[k + 6 >> 0] = a[b + 6 >> 0];
+              a[k + 7 >> 0] = a[b + 7 >> 0];
           }
 
           function ta(a) {
@@ -7346,7 +7395,8 @@
                       b[d + 436 >> 1] = 1;
                       break
                   }
-                  default:
+                  default: {
+                  }
               }
               n = d + 646 | 0;
               Fa = d + 666 | 0;
@@ -7851,7 +7901,7 @@
                       if (da) {
                           if (!(Ja | (b[aa >> 1] | 0) != 0)) x = 145;
                       } else if (!Ja) x = 145;
-                      if ((x | 0) == 145 ? ((b[U >> 1] | 0) == 0) : 0) {
+                      if ((x | 0) == 145 ? (0, (b[U >> 1] | 0) == 0) : 0) {
                           x = 147;
                           break
                       }
@@ -9264,7 +9314,8 @@
                           k = 4;
                           break a
                       }
-                      default:
+                      default: {
+                      }
                   }
                   b[a >> 1] = 0;
                   j = 0;
@@ -10018,7 +10069,7 @@
                   a = -1;
                   return a | 0
               }
-  b[a >> 1] = 0;
+              ;b[a >> 1] = 0;
               b[a + 2 >> 1] = 0;
               b[a + 4 >> 1] = 0;
               b[a + 6 >> 1] = 0;
@@ -10582,7 +10633,8 @@
                               b[o >> 1] = e[o >> 1] | 0 | 1;
                               break
                           }
-                          default:
+                          default: {
+                          }
                       }
                       b[m + 72 >> 1] = g & 1;
                       b[m + 74 >> 1] = g >>> 1 & 1;
@@ -11552,7 +11604,8 @@
                       m = 2;
                       break
                   }
-                  default:
+                  default: {
+                  }
               }
               f = h + (v << 1) | 0;
               if (a << 16 >> 16 > 0) {
@@ -11589,7 +11642,8 @@
                       a = 2;
                       break
                   }
-                  default:
+                  default: {
+                  }
               }
               m = h + (t << 1) | 0;
               if (n << 16 >> 16 > 0) {
@@ -13339,7 +13393,7 @@
                       d = (c[N >> 2] | 0) + (v << 1) | 0;
                       if (j) j = 20; else j = 19;
                   } while (0);
-                  if ((j | 0) == 19) yd(e, 2842, 2862, 2882, n, o, d, B, w, c[D >> 2] | 0, E, (c[F >> 2] | 0) + (v << 1) | 0, c[G >> 2] | 0, ka, ha, c[H >> 2] | 0); else if ((j | 0) == 20 ? (yd(0, 2842, 2862, 2882, n, o, d, B, ga, c[D >> 2] | 0, E, (c[F >> 2] | 0) + (v << 1) | 0, c[G >> 2] | 0, ka, ha, c[H >> 2] | 0), r) : 0) {
+                  if ((j | 0) == 19) yd(e, 2842, 2862, 2882, n, o, d, B, w, c[D >> 2] | 0, E, (c[F >> 2] | 0) + (v << 1) | 0, c[G >> 2] | 0, ka, ha, c[H >> 2] | 0); else if ((j | 0) == 20 ? (0, yd(0, 2842, 2862, 2882, n, o, d, B, ga, c[D >> 2] | 0, E, (c[F >> 2] | 0) + (v << 1) | 0, c[G >> 2] | 0, ka, ha, c[H >> 2] | 0), r) : 0) {
                       j = da;
                       e = c[G >> 2] | 0;
                       q = j + 80 | 0;
@@ -13367,7 +13421,8 @@
                           if ((b[y >> 1] | 0) > 0) b[O >> 1] = b[U >> 1] | 0;
                           break
                       }
-                      default:
+                      default: {
+                      }
                   }
                   Xb(la, c[G >> 2] | 0, b[U >> 1] | 0, b[C >> 1] | 0, b[aa >> 1] | 0, ia, X, oa, T, c[g >> 2] | 0, u, R, S);
                   Bc(c[L >> 2] | 0, c[g >> 2] | 0, ha, (c[F >> 2] | 0) + (v << 1) | 0, X, ka, la, na, oa, Z, f, b[ca >> 1] | 0, ba, $, aa, _, T, R, S);
@@ -14740,7 +14795,7 @@
                   a = -1;
                   return a | 0
               }
-  b[d >> 1] = 0;
+              ;b[d >> 1] = 0;
               b[d + 2 >> 1] = 0;
               b[d + 4 >> 1] = 0;
               b[d + 6 >> 1] = 0;
@@ -14759,7 +14814,7 @@
                   a = -1;
                   return a | 0
               }
-  b[a >> 1] = 0;
+              ;b[a >> 1] = 0;
               b[a + 2 >> 1] = 0;
               b[a + 4 >> 1] = 0;
               b[a + 6 >> 1] = 0;
@@ -16869,7 +16924,7 @@
                   a = -1;
                   return a | 0
               }
-  b[d >> 1] = 0;
+              ;b[d >> 1] = 0;
               b[d + 2 >> 1] = 0;
               b[d + 4 >> 1] = 0;
               b[d + 6 >> 1] = 0;
@@ -16886,7 +16941,7 @@
                   a = -1;
                   return a | 0
               }
-  b[a >> 1] = 0;
+              ;b[a >> 1] = 0;
               b[a + 2 >> 1] = 0;
               b[a + 4 >> 1] = 0;
               b[a + 6 >> 1] = 0;
@@ -19392,7 +19447,7 @@
                   a = -1;
                   return a | 0
               }
-  b[d >> 1] = 0;
+              ;b[d >> 1] = 0;
               b[d + 2 >> 1] = 0;
               b[d + 4 >> 1] = 0;
               b[d + 6 >> 1] = 0;
@@ -19411,7 +19466,7 @@
                   a = -1;
                   return a | 0
               }
-  b[a >> 1] = 0;
+              ;b[a >> 1] = 0;
               b[a + 2 >> 1] = 0;
               b[a + 4 >> 1] = 0;
               b[a + 6 >> 1] = 0;
@@ -24544,7 +24599,7 @@
 
           function Le() {
               var a = 0;
-              a = 600;
+              if (!0) a = 600;
               return a | 0
           }
 
@@ -24678,19 +24733,19 @@
 
       // EMSCRIPTEN_END_ASM
       (Module.asmGlobalArg, Module.asmLibraryArg, buffer);
-      var _Encoder_Interface_Encode = Module["_Encoder_Interface_Encode"] = asm["_Encoder_Interface_Encode"];
+      Module["_Encoder_Interface_Encode"] = asm["_Encoder_Interface_Encode"];
       var _free = Module["_free"] = asm["_free"];
-      var runPostSets = Module["runPostSets"] = asm["runPostSets"];
+      Module["runPostSets"] = asm["runPostSets"];
       var _memmove = Module["_memmove"] = asm["_memmove"];
-      var _Decoder_Interface_exit = Module["_Decoder_Interface_exit"] = asm["_Decoder_Interface_exit"];
-      var _Encoder_Interface_init = Module["_Encoder_Interface_init"] = asm["_Encoder_Interface_init"];
+      Module["_Decoder_Interface_exit"] = asm["_Decoder_Interface_exit"];
+      Module["_Encoder_Interface_init"] = asm["_Encoder_Interface_init"];
       var _memset = Module["_memset"] = asm["_memset"];
       var _malloc = Module["_malloc"] = asm["_malloc"];
       var _memcpy = Module["_memcpy"] = asm["_memcpy"];
-      var _Decoder_Interface_Decode = Module["_Decoder_Interface_Decode"] = asm["_Decoder_Interface_Decode"];
-      var _Decoder_Interface_init = Module["_Decoder_Interface_init"] = asm["_Decoder_Interface_init"];
-      var _Encoder_Interface_exit = Module["_Encoder_Interface_exit"] = asm["_Encoder_Interface_exit"];
-      var ___errno_location = Module["___errno_location"] = asm["___errno_location"];
+      Module["_Decoder_Interface_Decode"] = asm["_Decoder_Interface_Decode"];
+      Module["_Decoder_Interface_init"] = asm["_Decoder_Interface_init"];
+      Module["_Encoder_Interface_exit"] = asm["_Encoder_Interface_exit"];
+      Module["___errno_location"] = asm["___errno_location"];
       Runtime.stackAlloc = asm["stackAlloc"];
       Runtime.stackSave = asm["stackSave"];
       Runtime.stackRestore = asm["stackRestore"];
@@ -25241,8 +25296,6 @@
               this._onCancelRecord = fn;
               this._onFinishRecord = fn;
               break;
-
-            default:
           }
         }
       }

@@ -1,7 +1,7 @@
 import sourcemaps from "rollup-plugin-sourcemaps";
-import resolve from "rollup-plugin-node-resolve";
-import babel from "rollup-plugin-babel";
-import cjs from "rollup-plugin-commonjs";
+import resolve from "@rollup/plugin-node-resolve";
+import babel from "@rollup/plugin-babel";
+import cjs from "@rollup/plugin-commonjs";
 import replace from 'rollup-plugin-re';
 import { terser } from "rollup-plugin-terser";
 
@@ -14,10 +14,11 @@ export default [
                 jsnext: true,
                 browser: true
             }),
+            cjs(),
             babel({
+                babelHelpers: 'bundled',
                 exclude: ['./node_modules/**', './src/amrnb.js']
             }),
-            cjs(),
             // https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval
             replace({
                 include: ['./src/amrnb.js'],
@@ -43,10 +44,11 @@ export default [
                 jsnext: true,
                 browser: true
             }),
+            cjs(),
             babel({
+                babelHelpers: 'bundled',
                 exclude: ['./node_modules/benz-recorderjs/**', './src/amrnb.js']
             }),
-            cjs(),
             // https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval
             replace({
                 include: ['./src/amrnb.js'],
